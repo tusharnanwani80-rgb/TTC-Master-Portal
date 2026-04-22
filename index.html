@@ -297,13 +297,13 @@
 
     const newSubj = document.getElementById('newHwSubj').value.trim();
     const newTask = document.getElementById('newHwTask').value.trim();
-    if (newSubj && newTask) payload.push({ studentName: sName, type: "HW_Assigned", subject: newSubj, topic: newTask });
+    // New homework assigned
+if (newSubj && newTask) payload.push({ studentId: id, studentName: sName, type: "HW_Assigned", subject: newSubj, topic: newTask });
 
-    document.querySelectorAll('#hwList input[type="checkbox"]').forEach(box => {
-      const key = box.getAttribute('data-key');
-      if (box.checked !== originalHWState[key]) {
-        payload.push({ studentName: sName, type: "HW_Status", subject: box.getAttribute('data-subj'), topic: box.getAttribute('data-task'), status: box.checked ? "Done" : "Pending" });
-      }
+// Inside the existing homework checkbox loop:
+if (box.checked !== originalHWState[key]) {
+  payload.push({ studentId: id, studentName: sName, type: "HW_Status", subject: box.getAttribute('data-subj'), topic: box.getAttribute('data-task'), status: box.checked ? "Done" : "Pending" });
+}
     });
     sendPayload(payload, 'btn-hw', 'status-hw');
   }
@@ -316,13 +316,13 @@
     const newSubj = document.getElementById('newSylSubj').value.trim();
     const newChap = document.getElementById('newSylChap').value.trim();
     const newStat = document.getElementById('newSylStatus').value;
-    if (newSubj && newChap) payload.push({ studentName: sName, type: "Syllabus", subject: newSubj, topic: newChap, status: newStat });
+   // New chapter added
+if (newSubj && newChap) payload.push({ studentId: id, studentName: sName, type: "Syllabus", subject: newSubj, topic: newChap, status: newStat });
 
-    document.querySelectorAll('#sylList select').forEach(sel => {
-      const key = sel.getAttribute('data-key');
-      if (sel.value !== originalSylState[key]) {
-        payload.push({ studentName: sName, type: "Syllabus", subject: sel.getAttribute('data-subj'), topic: sel.getAttribute('data-chap'), status: sel.value });
-      }
+// Inside the syllabus select loop:
+if (sel.value !== originalSylState[key]) {
+  payload.push({ studentId: id, studentName: sName, type: "Syllabus", subject: sel.getAttribute('data-subj'), topic: sel.getAttribute('data-chap'), status: sel.value });
+}
     });
     sendPayload(payload, 'btn-syl', 'status-syl');
   }
