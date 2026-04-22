@@ -67,9 +67,9 @@
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('json')">📋 JSON Paste</button>
-    <button class="tab-btn" onclick="switchTab('hw')">📚 Homework</button>
-    <button class="tab-btn" onclick="switchTab('syl')">✅ Syllabus</button>
+    <button class="tab-btn active" onclick="switchTab('json', this)">📋 JSON Paste</button>
+    <button class="tab-btn" onclick="switchTab('hw', this)">📚 Homework</button>
+    <button class="tab-btn" onclick="switchTab('syl', this)">✅ Syllabus</button>
   </div>
 
   <div id="tab-json" class="tab-content active">
@@ -148,10 +148,12 @@
   let originalSylState = {};
   let isDbLoaded = false;
 
-  function switchTab(tabId) {
+  // FIXED: Safer tab switching logic to prevent crashes
+  function switchTab(tabId, btnElement) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    event.target.classList.add('active');
+    
+    if (btnElement) btnElement.classList.add('active');
     document.getElementById('tab-' + tabId).classList.add('active');
 
     if (tabId === 'hw' || tabId === 'syl') {
@@ -290,6 +292,7 @@
     }
   }
 
+  // 🔴 FIXED: studentId injected safely
   function syncHW() {
     let payload = [];
     const id = document.getElementById('globalStudent').value;
@@ -297,17 +300,18 @@
 
     const newSubj = document.getElementById('newHwSubj').value.trim();
     const newTask = document.getElementById('newHwTask').value.trim();
-    // New homework assigned
-if (newSubj && newTask) payload.push({ studentId: id, studentName: sName, type: "HW_Assigned", subject: newSubj, topic: newTask });
+    if (newSubj && newTask) payload.push({ studentId: id, studentName: sName, type: "HW_Assigned", subject: newSubj, topic: newTask });
 
-// Inside the existing homework checkbox loop:
-if (box.checked !== originalHWState[key]) {
-  payload.push({ studentId: id, studentName: sName, type: "HW_Status", subject: box.getAttribute('data-subj'), topic: box.getAttribute('data-task'), status: box.checked ? "Done" : "Pending" });
-}
+    document.querySelectorAll('#hwList input[type="checkbox"]').forEach(box => {
+      const key = box.getAttribute('data-key');
+      if (box.checked !== originalHWState[key]) {
+        payload.push({ studentId: id, studentName: sName, type: "HW_Status", subject: box.getAttribute('data-subj'), topic: box.getAttribute('data-task'), status: box.checked ? "Done" : "Pending" });
+      }
     });
     sendPayload(payload, 'btn-hw', 'status-hw');
   }
 
+  // 🔴 FIXED: studentId injected safely
   function syncSyllabus() {
     let payload = [];
     const id = document.getElementById('globalStudent').value;
@@ -316,13 +320,13 @@ if (box.checked !== originalHWState[key]) {
     const newSubj = document.getElementById('newSylSubj').value.trim();
     const newChap = document.getElementById('newSylChap').value.trim();
     const newStat = document.getElementById('newSylStatus').value;
-   // New chapter added
-if (newSubj && newChap) payload.push({ studentId: id, studentName: sName, type: "Syllabus", subject: newSubj, topic: newChap, status: newStat });
+    if (newSubj && newChap) payload.push({ studentId: id, studentName: sName, type: "Syllabus", subject: newSubj, topic: newChap, status: newStat });
 
-// Inside the syllabus select loop:
-if (sel.value !== originalSylState[key]) {
-  payload.push({ studentId: id, studentName: sName, type: "Syllabus", subject: sel.getAttribute('data-subj'), topic: sel.getAttribute('data-chap'), status: sel.value });
-}
+    document.querySelectorAll('#sylList select').forEach(sel => {
+      const key = sel.getAttribute('data-key');
+      if (sel.value !== originalSylState[key]) {
+        payload.push({ studentId: id, studentName: sName, type: "Syllabus", subject: sel.getAttribute('data-subj'), topic: sel.getAttribute('data-chap'), status: sel.value });
+      }
     });
     sendPayload(payload, 'btn-syl', 'status-syl');
   }
