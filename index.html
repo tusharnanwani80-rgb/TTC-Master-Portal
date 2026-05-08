@@ -2,140 +2,253 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TTC Master Admin Portal</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TTC Command Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --rust: #D94F2B; --rust-dark: #b83e20; --rust-light: #f7ede8;
-      --cream: #FDF6EE; --ink: #1e1510; --muted: #8a7060; --border: #e2d4ca;
-      --blue: #4361EE; --green: #059669; --orange: #FF6B35;
+      --blue: #4361EE; --orange: #FF6B35; --lime: #C8FF00; --pink: #FF3D8A;
+      --white: #FFFFFF; --off: #F8FAFC; --dark: #0F172A; --grey: #64748B;
+      --light: #F1F5F9; --green: #10B981; --rust: #D94F2B; --border: #E2E8F0;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'DM Sans', sans-serif; background-color: var(--cream); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; position: relative; overflow-x: hidden; }
-    body::before, body::after { content: ''; position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; }
-    body::before { width: 500px; height: 500px; background: radial-gradient(circle, rgba(217,79,43,0.08) 0%, transparent 70%); top: -100px; right: -100px; }
-    body::after { width: 400px; height: 400px; background: radial-gradient(circle, rgba(217,79,43,0.06) 0%, transparent 70%); bottom: -80px; left: -80px; }
-    .card { background: #fff; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(30,21,16,0.06), 0 12px 40px rgba(30,21,16,0.10); width: 100%; max-width: 640px; padding: 36px; position: relative; z-index: 1; animation: fadeUp 0.4s ease both; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    .portal-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
-    .logo-wrap { width: 56px; height: 56px; border-radius: 12px; overflow: hidden; flex-shrink: 0; border: 2px solid var(--rust-light); display: flex; align-items: center; justify-content: center; background: var(--rust-light); }
-    .logo-wrap img { width: 100%; height: 100%; object-fit: contain; }
-    .header-text h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.55rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
-    .header-text .badge { display: inline-block; margin-top: 5px; background: var(--rust-light); color: var(--rust); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
-    .tabs { display: flex; gap: 10px; margin-bottom: 24px; background: var(--rust-light); padding: 6px; border-radius: 14px; }
-    .tab-btn { flex: 1; padding: 10px; font-family: 'DM Sans'; font-size: 14px; font-weight: 600; color: var(--muted); background: transparent; border: none; border-radius: 10px; cursor: pointer; transition: 0.2s; }
-    .tab-btn.active { background: #fff; color: var(--rust); box-shadow: 0 2px 8px rgba(217,79,43,0.15); }
-    .tab-content { display: none; animation: fadeUp 0.3s ease both; }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { 
+      font-family: 'DM Sans', sans-serif; 
+      background: var(--off);
+      min-height: 100vh; padding-bottom: 120px; color: var(--dark); 
+    }
+    
+    /* Header */
+    .hdr { background: var(--white); padding: 16px 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+    .hdr-logo { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); }
+    .hdr-title { font-size: 18px; font-weight: 800; color: var(--dark); line-height: 1.1; margin-bottom: 2px; }
+    .hdr-badge { display: inline-block; font-size: 10px; font-weight: 800; background: var(--blue); color: var(--white); padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .container { max-width: 600px; margin: 0 auto; padding: 20px 16px; }
+    
+    /* Smart Filter Engine */
+    .filter-wrapper { position: relative; margin-bottom: 8px; }
+    .filter-wrapper::after { content: ''; position: absolute; right: 0; top: 0; bottom: 12px; width: 40px; background: linear-gradient(to right, transparent, var(--off)); pointer-events: none; }
+    .filter-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; scrollbar-width: none; }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+    .filter-chip { flex-shrink: 0; padding: 8px 16px; font-size: 13px; font-weight: 700; background: var(--white); border: 1px solid var(--border); border-radius: 50px; color: var(--grey); cursor: pointer; transition: 0.15s; }
+    .filter-chip:active { transform: scale(0.96); }
+    .filter-chip.active { background: var(--dark); color: var(--white); border-color: var(--dark); }
+    
+    .filter-chip.group-chip { display:flex; align-items:center; gap:6px; background: #FFF4E5; border-color: #FFD2B3; color: var(--rust); }
+    .filter-chip.group-chip.active { background: var(--rust); color: var(--white); border-color: var(--rust); }
+    .del-grp { background: rgba(0,0,0,0.06); border-radius: 50%; width: 18px; height: 18px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; color:inherit; margin-right: -4px;}
+    .filter-chip.active .del-grp { background: rgba(255,255,255,0.2); }
+
+    /* Roster Pill Cards (No Inner Scroll) */
+    .roster-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px; font-size: 13px; font-weight: 800; color: var(--grey); text-transform: uppercase; letter-spacing: 0.5px; }
+    #selectAllBtn { font-size: 12px; font-weight: 700; background: var(--light); color: var(--dark); border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: 0.1s; }
+    #selectAllBtn:active { transform: scale(0.95); background: #E2E8F0; }
+    
+    .student-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+    .stu-check { background: var(--white); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 6px; text-align: center; cursor: pointer; transition: 0.15s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .stu-check input { display: none; }
+    .stu-check.selected { background: var(--rust); border-color: var(--rust); color: var(--white); box-shadow: 0 4px 10px rgba(217,79,43,0.2); }
+    .stu-name { font-size: 13px; font-weight: 700; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; color: var(--dark); }
+    .stu-check.selected .stu-name { color: var(--white); }
+    .stu-cls { font-size: 10px; font-weight: 700; color: var(--grey); margin-top: 2px; }
+    .stu-check.selected .stu-cls { color: rgba(255,255,255,0.7); }
+
+    /* Casting Confirmation Strip */
+    .casting-strip { margin-bottom: 24px; padding: 12px; background: var(--white); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.02); display: none; animation: fadeUp 0.2s ease; }
+    .cs-label { font-size: 11px; font-weight: 800; color: var(--grey); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .cs-pills { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+    .cs-pills::-webkit-scrollbar { display: none; }
+    .cs-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--light); padding: 6px 12px; border-radius: 50px; font-size: 12px; font-weight: 700; color: var(--dark); white-space: nowrap; border: 1px solid var(--border); }
+    .cs-pill .del { color: var(--grey); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: #E2E8F0; font-size: 10px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 8px; margin-bottom: 24px; background: var(--light); padding: 4px; border-radius: 12px; }
+    .tab-btn { flex: 1; padding: 10px 4px; font-size: 13px; font-weight: 700; color: var(--grey); background: transparent; border: none; border-radius: 8px; cursor: pointer; transition: 0.15s; }
+    .tab-btn.active { background: var(--white); color: var(--blue); box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    .tab-content { display: none; animation: fadeUp 0.2s ease; }
     .tab-content.active { display: block; }
-    label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-    input[type="text"], select, textarea { width: 100%; padding: 12px 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--cream); color: var(--ink); outline: none; transition: 0.2s; margin-bottom: 16px; }
-    input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--rust); background: #fff; box-shadow: 0 0 0 3px rgba(217,79,43,0.12); }
-    textarea { height: 180px; resize: vertical; font-family: 'Courier New', monospace; font-size: 13px; }
-    .section-box { border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 20px; background: #fff; }
-    .section-title { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
-    .new-entry-box { background: var(--rust-light); border-color: var(--border); }
-    .list-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px dashed var(--border); }
-    .list-item:last-child { border-bottom: none; padding-bottom: 0; }
-    .checkbox-wrapper { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; }
-    .checkbox-wrapper input { width: 20px; height: 20px; cursor: pointer; accent-color: var(--green); }
-    .item-details { flex: 1; }
-    .item-subj { font-size: 11px; font-weight: 700; color: var(--rust); text-transform: uppercase; margin-bottom: 2px; }
-    .item-task { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.3; }
-    .syl-select { width: 110px; padding: 6px 8px; font-size: 12px; margin-bottom: 0; border-radius: 8px; }
-    .submit-btn { width: 100%; padding: 14px 20px; background: var(--rust); color: white; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(217,79,43,0.30); }
-    .submit-btn:hover:not(:disabled) { background: var(--rust-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(217,79,43,0.38); }
-    .submit-btn:disabled { background: #c5b8b2; cursor: not-allowed; box-shadow: none; }
-    .status-box { margin-top: 14px; padding: 12px; border-radius: 10px; display: none; font-size: 13.5px; font-weight: 600; text-align: center; animation: fadeUp 0.3s ease both; border: 1px solid transparent; }
-    .success { background: #eafaf1; color: #1a6b3a; border-color: #b7e4c7; }
-    .error   { background: #fdf0ed; color: #9b2c2c; border-color: #f5c6c6; }
-    .loader-text { text-align: center; font-weight: 600; color: var(--muted); padding: 30px; }
-    .portal-footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: #c0aea4; }
-    .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ccc; margin-right: 6px; vertical-align: middle; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 0.5; background: #ccc; } 50% { opacity: 1; background: #4CAF50; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Inputs & Layout */
+    .fld { margin-bottom: 16px; }
+    label { display: block; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: var(--grey); margin-bottom: 6px; }
+    input[type="text"], select, textarea { width: 100%; padding: 14px 16px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; border: 1.5px solid var(--border); border-radius: 12px; background: var(--white); color: var(--dark); outline: none; transition: 0.15s; }
+    input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(67,97,238,0.1); }
+    textarea { height: 100px; resize: vertical; }
+
+    .op-divider { text-align: center; margin: 28px 0 20px; position: relative; }
+    .op-divider::before { content:''; position:absolute; left:0; top:50%; width:100%; height:1px; background:var(--border); z-index:1; }
+    .op-divider span { background: var(--off); padding: 0 12px; font-size: 10px; font-weight: 800; color: var(--grey); position: relative; z-index: 2; letter-spacing: 1.5px; }
+
+    /* Dynamic Homework Rows */
+    .new-hw-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 12px; }
+    .new-hw-row .fld { margin-bottom: 0; }
+    .remove-hw-btn { background: #FEE2E2; color: #EF4444; border: 1.5px solid #FCA5A5; border-radius: 12px; height: 51px; width: 51px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; font-weight: bold; flex-shrink: 0; transition: 0.15s; }
+    .remove-hw-btn:active { transform: scale(0.95); }
+    .add-more-btn { background: var(--off); color: var(--blue); border: 2px dashed rgba(67,97,238,0.4); border-radius: 12px; padding: 12px; font-size: 13px; font-weight: 800; cursor: pointer; width: 100%; transition: 0.15s; margin-bottom: 16px; }
+    .add-more-btn:active { background: #E0E7FF; border-color: var(--blue); }
+
+    /* Segmented Controls (Replaces selects) */
+    .list-item { display: flex; flex-direction: column; gap: 8px; padding: 16px; background: var(--white); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+    .item-subj { font-size: 10px; font-weight: 800; color: var(--rust); text-transform: uppercase; letter-spacing: 0.5px; }
+    .item-task { font-size: 14px; font-weight: 700; color: var(--dark); line-height: 1.3; }
+    
+    .seg-ctrl { display: flex; background: var(--light); padding: 4px; border-radius: 10px; gap: 4px; width: 100%; }
+    .seg-ctrl label { flex: 1; margin: 0; cursor: pointer; text-transform: none; font-weight: normal; letter-spacing: normal; }
+    .seg-ctrl input { display: none; }
+    .seg-ctrl span { display: block; text-align: center; font-size: 11px; font-weight: 700; padding: 8px 2px; border-radius: 8px; color: var(--grey); transition: 0.15s; }
+    .seg-ctrl input:checked + span { background: var(--white); color: var(--dark); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .seg-ctrl.syl input[value="Completed"]:checked + span { color: var(--green); }
+    .seg-ctrl.syl input[value="Ongoing"]:checked + span { color: var(--orange); }
+    .seg-ctrl.hw input[value="Done"]:checked + span { color: var(--green); }
+
+    /* Action Bar */
+    .action-bar { position: fixed; bottom: -100px; left: 0; right: 0; background: var(--white); border-top: 1px solid var(--border); padding: 12px 20px 24px; display: flex; justify-content: space-between; align-items: center; z-index: 200; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); transition: bottom 0.3s cubic-bezier(.34,1.3,.64,1); }
+    .action-bar.visible { bottom: 0; }
+    
+    .ab-left { display: flex; flex-direction: column; gap: 4px; max-width: 55%; }
+    .selection-counter { font-size: 13px; font-weight: 800; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .save-grp-btn { background: var(--white); border: 1px solid var(--border); color: var(--grey); padding: 6px 12px; border-radius: 50px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; width: max-content; }
+    .save-grp-btn:active { background: var(--light); }
+    
+    .submit-btn { padding: 14px 28px; background: var(--rust); color: var(--white); font-size: 15px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; transition: 0.15s; box-shadow: 0 4px 12px rgba(217,79,43,0.2); }
+    .submit-btn:active { transform: scale(0.96); box-shadow: 0 2px 6px rgba(217,79,43,0.2); }
+
+    /* Overlays */
+    .status-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(2px); padding: 20px; }
+    .status-card { background: var(--white); padding: 24px; border-radius: 20px; border: 1px solid var(--border); text-align: center; width: 100%; max-width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); animation: fadeUp 0.2s ease; }
+    .sc-icon { font-size: 40px; margin-bottom: 12px; }
+    .sc-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; color: var(--dark); }
+    .sc-sub { font-size: 13px; color: var(--grey); font-weight: 500; }
   </style>
 </head>
 <body>
 
-<div class="card">
-  <div class="portal-header">
-    <div class="logo-wrap"><img src="https://i.postimg.cc/x9mDND2Q/Ttc-logo.png" alt="TTC"></div>
-    <div class="header-text">
-      <h2>Teacher Admin</h2>
-      <span class="badge">Master Portal</span>
+<header class="hdr">
+  <div style="display:flex; align-items:center; gap:12px;">
+    <img class="hdr-logo" src="https://i.postimg.cc/x9mDND2Q/Ttc-logo.png" alt="TTC">
+    <div>
+      <div class="hdr-title">Command Center</div>
+      <div class="hdr-badge">Master Portal</div>
     </div>
   </div>
+</header>
 
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('json')">📋 JSON Paste</button>
-    <button class="tab-btn" onclick="switchTab('hw')">📚 Homework</button>
-    <button class="tab-btn" onclick="switchTab('syl')">✅ Syllabus</button>
+<div class="container">
+  
+  <div id="db-loader" style="text-align:center; padding: 40px; font-size:15px; font-weight:700; color:var(--grey);">
+    ⏳ Connecting to live roster...
   </div>
 
-  <div id="tab-json" class="tab-content active">
-    <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">Paste the <strong>JSON block</strong> from ChatGPT / Gemini below for bulk updates.</p>
-    <label>JSON Data</label>
-    <textarea id="jsonInput" placeholder='Paste JSON here... e.g. [{"studentName": "Aarohi", "type": "Test"...}]'></textarea>
-    <button class="submit-btn" id="btn-json" onclick="syncJSON()">Update Dashboard 🚀</button>
-    <div id="status-json" class="status-box"></div>
-  </div>
+  <div id="main-ui" style="display:none;">
+    
+    <!-- SMART FILTER ENGINE -->
+    <div class="filter-wrapper">
+      <div class="filter-scroll" id="filterContainer"></div>
+    </div>
 
-  <div id="db-loader" class="loader-text" style="display:none;">⏳ Connecting to live database...</div>
+    <!-- ROSTER PILL GRID -->
+    <div class="roster-header">
+      <span>Target Students</span>
+      <button id="selectAllBtn" onclick="toggleAll()">Select All</button>
+    </div>
+    <div class="student-grid" id="studentGrid"></div>
 
-  <div id="student-selector" style="display:none;">
-    <label>Select Student</label>
-    <select id="globalStudent" onchange="loadStudentData()">
-      <option value="">-- Choose a Student --</option>
-    </select>
-  </div>
+    <!-- CASTING CONFIRMATION STRIP -->
+    <div id="castingStrip" class="casting-strip">
+      <div class="cs-label">Casting To:</div>
+      <div class="cs-pills" id="csPills"></div>
+    </div>
 
-  <div id="tab-hw" class="tab-content">
-    <div id="hw-workspace" style="display:none;">
-      <div class="section-box new-entry-box">
-        <div class="section-title" style="color:var(--rust);">➕ Assign New Homework</div>
-        <div style="display:flex; gap:10px;">
-          <div style="flex:1;"><label>Subject</label><input type="text" id="newHwSubj" placeholder="e.g. Maths"></div>
+    <!-- COMMAND TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('hw')">📚 Homework</button>
+      <button class="tab-btn" onclick="switchTab('syl')">✅ Syllabus</button>
+      <button class="tab-btn" onclick="switchTab('json')">⚙️ JSON</button>
+    </div>
+
+    <!-- HOMEWORK TAB -->
+    <div id="tab-hw" class="tab-content active">
+      <div class="op-divider"><span>— ADD NEW —</span></div>
+      <div id="newHwContainer">
+        <div class="new-hw-row">
+          <div class="fld" style="flex:1;"><label>Subject</label><input type="text" class="newHwSubj" placeholder="e.g. Maths"></div>
+          <div class="fld" style="flex:2;"><label>Task Details</label><input type="text" class="newHwTask" placeholder="e.g. Ex 2.1 Q1-5"></div>
+          <button class="remove-hw-btn" style="display:none;" onclick="this.parentElement.remove()">✕</button>
         </div>
-        <label>Task Details</label><input type="text" id="newHwTask" placeholder="e.g. Ex 2.1 Q1-5" style="margin-bottom:0;">
       </div>
-      <div class="section-box">
-        <div class="section-title">📋 Existing Homework <span id="hwCount" style="font-size:11px; background:var(--ink); color:#fff; padding:3px 8px; border-radius:50px;">0</span></div>
-        <div id="hwList"></div>
+      <button class="add-more-btn" onclick="addHwRow()">+ Add Another Task</button>
+      
+      <div id="hw-history-container" style="display:none;">
+        <div class="op-divider"><span>— UPDATE EXISTING —</span></div>
+        <div id="hwHistoryList"></div>
       </div>
-      <button class="submit-btn" id="btn-hw" onclick="syncHW()">Sync Homework 🚀</button>
-      <div id="status-hw" class="status-box"></div>
     </div>
-  </div>
 
-  <div id="tab-syl" class="tab-content">
-    <div id="syl-workspace" style="display:none;">
-      <div class="section-box new-entry-box">
-        <div class="section-title" style="color:var(--rust);">➕ Add New Chapter</div>
-        <div style="display:flex; gap:10px;">
-          <div style="flex:1;"><label>Subject</label><input type="text" id="newSylSubj" placeholder="e.g. Science"></div>
-          <div style="flex:1;">
-            <label>Status</label>
-            <select id="newSylStatus">
-              <option value="Completed">Completed</option>
-              <option value="Ongoing">Ongoing</option>
-              <option value="Pending">Upcoming</option>
-            </select>
-          </div>
+    <!-- SYLLABUS TAB -->
+    <div id="tab-syl" class="tab-content">
+      <div class="op-divider"><span>— ADD NEW —</span></div>
+      <div style="display:flex; gap:12px;">
+        <div class="fld" style="flex:1;"><label>Subject</label><input type="text" id="newSylSubj" placeholder="e.g. Science"></div>
+        <div class="fld" style="flex:1;">
+          <label>Status</label>
+          <select id="newSylStatus">
+            <option value="Completed">Completed</option>
+            <option value="Ongoing">Ongoing</option>
+            <option value="Pending">Upcoming</option>
+          </select>
         </div>
-        <label>Chapter Name</label><input type="text" id="newSylChap" placeholder="e.g. Chapter 3: Heat" style="margin-bottom:0;">
       </div>
-      <div class="section-box">
-        <div class="section-title">📚 Current Syllabus Tracker</div>
-        <div id="sylList"></div>
+      <div class="fld"><label>Chapter Name</label><input type="text" id="newSylChap" placeholder="e.g. Current Electricity"></div>
+      
+      <div id="syl-history-container" style="display:none;">
+         <div class="op-divider"><span>— UPDATE EXISTING —</span></div>
+         <div id="sylHistoryList"></div>
       </div>
-      <button class="submit-btn" id="btn-syl" onclick="syncSyllabus()">Sync Syllabus 🚀</button>
-      <div id="status-syl" class="status-box"></div>
     </div>
-  </div>
 
-  <div class="portal-footer">
-    <span><span class="dot"></span>Connected to Google Sheets</span>
-    <span>Tushar Tuition Classes</span>
+    <!-- JSON TAB -->
+    <div id="tab-json" class="tab-content">
+      <div class="op-divider"><span>— BULK OVERRIDE —</span></div>
+      <div class="fld">
+        <label>Raw JSON Data</label>
+        <textarea id="jsonInput" placeholder='[{"studentName": "Aarav", "type": "Test"...}]'></textarea>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOTTOM ACTION BAR -->
+<div class="action-bar" id="actionBar">
+  <div class="ab-left">
+    <div class="selection-counter" id="selCounterText">0 Selected</div>
+    <div id="saveGroupBtn" class="save-grp-btn" onclick="openGroupModal()">🔖 Save as Group</div>
+  </div>
+  <button class="submit-btn" id="mainSubmitBtn" onclick="executeCast()">🚀 CAST</button>
+</div>
+
+<!-- STATUS OVERLAY -->
+<div class="status-overlay" id="statusOverlay">
+  <div class="status-card" id="statusCard">
+    <div class="sc-icon" id="scIcon">⏳</div>
+    <div class="sc-title" id="scTitle">Syncing...</div>
+    <div class="sc-sub" id="scSub">Encrypting payload</div>
+  </div>
+</div>
+
+<!-- CUSTOM GROUP MODAL -->
+<div class="status-overlay" id="groupModal" style="align-items:center;">
+  <div class="status-card" style="text-align:left;">
+    <div class="sc-title" style="font-size:18px;">Save Custom Cohort</div>
+    <div style="font-size:13px; color:var(--grey); margin-bottom:16px;">Create quick-select groups like "St. Mary's Batch".</div>
+    <input type="text" id="newGrpName" placeholder="e.g. Morning Batch" style="margin-bottom:20px; padding:12px; font-size:14px;">
+    <div style="display:flex; gap:10px;">
+      <button class="submit-btn" style="flex:1; background:var(--light); color:var(--dark); box-shadow:none; padding:12px; font-size:14px;" onclick="document.getElementById('groupModal').style.display='none'">Cancel</button>
+      <button class="submit-btn" style="flex:1; padding:12px; font-size:14px; box-shadow:none;" onclick="saveCustomGroup()">Save</button>
+    </div>
   </div>
 </div>
 
@@ -144,188 +257,444 @@
   const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxQiwdMGjaY2ZcGE0iaAbwC72CPjgRp2WhHKyj1mjF5vHd_2wzKjofdEMoeHisz2i-Xsg/exec';
 
   let ALL_STUDENTS = {};
+  let selectedIds = new Set();
+  let currentTab = 'hw';
+  
+  // Custom Cohort Engine
+  let customGroups = JSON.parse(localStorage.getItem('ttc_custom_groups')) || {};
+  let currentFilterType = 'ALL'; 
+  let currentFilterVal = 'ALL';
+  
+  // State Trackers
   let originalHWState = {}; 
   let originalSylState = {};
-  let isDbLoaded = false;
 
-  function switchTab(tabId) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    event.target.classList.add('active');
-    document.getElementById('tab-' + tabId).classList.add('active');
-
-    if (tabId === 'hw' || tabId === 'syl') {
-      if (!isDbLoaded) fetchDatabase();
-      else document.getElementById('student-selector').style.display = 'block';
-    } else {
-      document.getElementById('student-selector').style.display = 'none';
-    }
-  }
-
-  async function fetchDatabase() {
-    document.getElementById('db-loader').style.display = 'block';
+  async function init() {
     try {
       const res = await fetch(WEB_APP_URL);
       const json = await res.json();
       if (json.status !== 'ok') throw new Error(json.msg);
       
       ALL_STUDENTS = json.data;
-      const select = document.getElementById('globalStudent');
-      select.innerHTML = '<option value="">-- Choose a Student --</option>'; 
       
-      Object.keys(ALL_STUDENTS).sort((a, b) => ALL_STUDENTS[a].name.localeCompare(ALL_STUDENTS[b].name))
-        .forEach(id => {
-          let opt = document.createElement('option'); opt.value = id;
-          opt.innerText = ALL_STUDENTS[id].name + " (" + ALL_STUDENTS[id].class + ")";
-          select.appendChild(opt);
-        });
-
-      isDbLoaded = true;
       document.getElementById('db-loader').style.display = 'none';
-      document.getElementById('student-selector').style.display = 'block';
+      document.getElementById('main-ui').style.display = 'block';
+      
+      buildFilters();
+      renderRoster();
     } catch (e) {
-      document.getElementById('db-loader').innerHTML = "❌ Failed to connect to sheets. Please check URL.";
+      document.getElementById('db-loader').innerHTML = "❌ Failed to connect to database. Check URL.";
     }
   }
 
-  function loadStudentData() {
-    const id = document.getElementById('globalStudent').value;
-    const hwWork = document.getElementById('hw-workspace');
-    const sylWork = document.getElementById('syl-workspace');
+  function buildFilters() {
+    let classes = new Set();
+    Object.values(ALL_STUDENTS).forEach(s => {
+      if(s.class) classes.add(s.class);
+    });
     
-    document.querySelectorAll('.status-box').forEach(b => b.style.display = 'none');
-    document.getElementById('newHwSubj').value = ''; document.getElementById('newHwTask').value = '';
-    document.getElementById('newSylSubj').value = ''; document.getElementById('newSylChap').value = '';
+    let html = `<div class="filter-chip ${currentFilterType === 'ALL' ? 'active' : ''}" onclick="applyFilter('ALL', 'ALL', this)">All Students</div>`;
     
-    if (!id) { hwWork.style.display = 'none'; sylWork.style.display = 'none'; return; }
+    Array.from(classes).sort().forEach(c => {
+      let isAct = (currentFilterType === 'CLASS' && currentFilterVal === c) ? 'active' : '';
+      html += `<div class="filter-chip ${isAct}" onclick="applyFilter('CLASS', '${c}', this)">${c}</div>`;
+    });
     
-    hwWork.style.display = 'block';
-    sylWork.style.display = 'block';
-    const student = ALL_STUDENTS[id];
+    Object.keys(customGroups).sort().forEach(g => {
+      let isAct = (currentFilterType === 'GROUP' && currentFilterVal === g) ? 'active' : '';
+      html += `<div class="filter-chip group-chip ${isAct}" onclick="applyFilter('GROUP', '${g}', this)">
+                 🔖 ${g} <span class="del-grp" onclick="deleteGroup('${g}', event)">✕</span>
+               </div>`;
+    });
+    
+    document.getElementById('filterContainer').innerHTML = html;
+  }
 
-    let hwHtml = '';
-    const hwArray = student.previousHomework || [];
-    document.getElementById('hwCount').innerText = hwArray.length;
-    originalHWState = {};
+  function applyFilter(type, val, btnElement) {
+    currentFilterType = type;
+    currentFilterVal = val;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    if(btnElement) btnElement.classList.add('active');
+    renderRoster();
+  }
 
-    if (hwArray.length === 0) hwHtml = '<div style="color:var(--muted); font-size:13px; text-align:center; padding:10px;">No homework history found.</div>';
-    else {
-      hwArray.forEach((hw, idx) => {
-        const uniqueKey = hw.subject + "|||" + (hw.originalTopic || hw.task);
-        originalHWState[uniqueKey] = hw.done;
-        hwHtml += `
-          <div class="list-item">
-            <div class="checkbox-wrapper"><input type="checkbox" id="hw_${idx}" data-key="${uniqueKey}" data-subj="${hw.subject}" data-task="${hw.originalTopic || hw.task}" ${hw.done ? 'checked' : ''}></div>
-            <div class="item-details"><div class="item-subj">${hw.subject}</div><label for="hw_${idx}" class="item-task" style="margin:0;cursor:pointer;text-transform:none;">${hw.task}</label></div>
-          </div>`;
-      });
+  function renderRoster() {
+    let html = '';
+    let filteredIds = Object.keys(ALL_STUDENTS).filter(id => {
+      if (currentFilterType === 'ALL') return true;
+      if (currentFilterType === 'CLASS') return ALL_STUDENTS[id].class === currentFilterVal;
+      if (currentFilterType === 'GROUP') return customGroups[currentFilterVal] && customGroups[currentFilterVal].includes(id);
+    });
+
+    filteredIds.sort((a, b) => ALL_STUDENTS[a].name.localeCompare(ALL_STUDENTS[b].name));
+
+    filteredIds.forEach(id => {
+      let isSel = selectedIds.has(id);
+      let s = ALL_STUDENTS[id];
+      // Get first name for pill view to save space
+      let firstName = s.name.split(' ')[0];
+      html += `
+        <label class="stu-check ${isSel ? 'selected' : ''}">
+          <input type="checkbox" value="${id}" ${isSel ? 'checked' : ''} onchange="toggleStudent('${id}', this)">
+          <span class="stu-name">${firstName}</span>
+          <span class="stu-cls">${s.class}</span>
+        </label>
+      `;
+    });
+    document.getElementById('studentGrid').innerHTML = html;
+    updateUIState();
+  }
+
+  function toggleStudent(id, checkbox) {
+    if(checkbox.checked) selectedIds.add(id);
+    else selectedIds.delete(id);
+    checkbox.parentElement.classList.toggle('selected', checkbox.checked);
+    updateUIState();
+  }
+
+  function removeStudent(id) {
+    let cb = document.querySelector(`input[value="${id}"]`);
+    if(cb) {
+       cb.checked = false;
+       toggleStudent(id, cb);
+    } else {
+       // Fallback if they are not in the current filter view
+       selectedIds.delete(id);
+       updateUIState();
     }
-    document.getElementById('hwList').innerHTML = hwHtml;
+  }
 
-    let sylHtml = '';
+  let allSelected = false;
+  function toggleAll() {
+    let visibleCheckboxes = document.querySelectorAll('#studentGrid input[type="checkbox"]');
+    allSelected = !allSelected;
+    visibleCheckboxes.forEach(cb => {
+      cb.checked = allSelected;
+      if(allSelected) selectedIds.add(cb.value);
+      else selectedIds.delete(cb.value);
+      cb.parentElement.classList.toggle('selected', allSelected);
+    });
+    document.getElementById('selectAllBtn').innerText = allSelected ? "Deselect All" : "Select All";
+    updateUIState();
+  }
+
+  function openGroupModal() {
+    document.getElementById('newGrpName').value = '';
+    document.getElementById('groupModal').style.display = 'flex';
+  }
+
+  function saveCustomGroup() {
+    let name = document.getElementById('newGrpName').value.trim();
+    if(!name) return;
+    customGroups[name] = Array.from(selectedIds);
+    localStorage.setItem('ttc_custom_groups', JSON.stringify(customGroups));
+    document.getElementById('groupModal').style.display = 'none';
+    buildFilters(); 
+    let chips = document.querySelectorAll('.filter-chip');
+    applyFilter('GROUP', name, chips[chips.length - 1]);
+  }
+
+  function deleteGroup(name, event) {
+    event.stopPropagation(); 
+    if(confirm(`Delete the custom cohort "${name}"?\n(Your students will NOT be deleted from the database).`)) {
+      delete customGroups[name];
+      localStorage.setItem('ttc_custom_groups', JSON.stringify(customGroups));
+      if(currentFilterType === 'GROUP' && currentFilterVal === name) {
+         currentFilterType = 'ALL'; currentFilterVal = 'ALL';
+      }
+      buildFilters();
+      renderRoster();
+    }
+  }
+
+  function switchTab(tabId) {
+    currentTab = tabId;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('tab-' + tabId).classList.add('active');
+    updateUIState();
+  }
+
+  function addHwRow() {
+    const container = document.getElementById('newHwContainer');
+    const row = document.createElement('div');
+    row.className = 'new-hw-row';
+    row.innerHTML = `
+      <div class="fld" style="flex:1;"><label>Subject</label><input type="text" class="newHwSubj" placeholder="e.g. Maths"></div>
+      <div class="fld" style="flex:2;"><label>Task Details</label><input type="text" class="newHwTask" placeholder="e.g. Ex 2.1 Q1-5"></div>
+      <button class="remove-hw-btn" onclick="this.parentElement.remove()">✕</button>
+    `;
+    container.appendChild(row);
+  }
+
+  // --- THE INTELLIGENT SHAPE-SHIFTER & SHARED COHORT MEMORY ---
+  function updateUIState() {
+    let count = selectedIds.size;
+    
+    // Casting Confirmation Strip & Bottom Bar Text
+    let pillHtml = '';
+    let selNames = [];
+    selectedIds.forEach(id => {
+       let n = ALL_STUDENTS[id].name.split(' ')[0];
+       selNames.push(n);
+       pillHtml += `<div class="cs-pill">${n} <span class="del" onclick="removeStudent('${id}')">✕</span></div>`;
+    });
+    document.getElementById('csPills').innerHTML = pillHtml;
+    document.getElementById('castingStrip').style.display = count > 0 ? 'block' : 'none';
+
+    if(count === 0) {
+       document.getElementById('selCounterText').innerText = "0 Selected";
+    } else if (count <= 2) {
+       document.getElementById('selCounterText').innerText = selNames.join(', ');
+    } else {
+       document.getElementById('selCounterText').innerText = `${selNames[0]}, ${selNames[1]} +${count - 2}`;
+    }
+    
+    // Toggle Action Bar
+    const actionBar = document.getElementById('actionBar');
+    if (count > 0 || currentTab === 'json') {
+      actionBar.classList.add('visible');
+    } else {
+      actionBar.classList.remove('visible');
+    }
+    
+    document.getElementById('saveGroupBtn').style.display = (count > 1) ? 'inline-flex' : 'none';
+
+    if(count > 0) {
+      document.getElementById('hw-history-container').style.display = 'block';
+      document.getElementById('syl-history-container').style.display = 'block';
+      buildSharedLists();
+    } else {
+      document.getElementById('hw-history-container').style.display = 'none';
+      document.getElementById('syl-history-container').style.display = 'none';
+    }
+
+    if(currentTab === 'json') {
+      document.getElementById('mainSubmitBtn').innerText = "Execute JSON";
+    } else {
+      document.getElementById('mainSubmitBtn').innerText = "🚀 CAST";
+    }
+  }
+
+  // SHARED COHORT MEMORY EXTRACTOR
+  function buildSharedLists() {
+    let isSingle = selectedIds.size === 1;
+    originalHWState = {};
     originalSylState = {};
-    if (Object.keys(student.syllabus || {}).length === 0) sylHtml = '<div style="color:var(--muted); font-size:13px; text-align:center; padding:10px;">No syllabus history found.</div>';
+    
+    let hwMap = new Map();
+    let sylMap = new Map();
+
+    selectedIds.forEach(id => {
+        let s = ALL_STUDENTS[id];
+        // Scan HW
+        (s.previousHomework || []).forEach(hw => {
+            let task = hw.originalTopic || hw.task;
+            let key = hw.subject + "|||" + task;
+            if(!hwMap.has(key)) hwMap.set(key, {subj: hw.subject, task: task, states: []});
+            hwMap.get(key).states.push(hw.done);
+        });
+        // Scan Syllabus
+        for (let subj in (s.syllabus || {})) {
+            let cleanSubj = subj.replace(/[^\x00-\x7F]/g, '').trim();
+            let data = s.syllabus[subj];
+            ['completed', 'ongoing', 'pending'].forEach(stat => {
+                (data[stat] || []).forEach(chap => {
+                    let key = cleanSubj + '|||' + chap;
+                    if(!sylMap.has(key)) sylMap.set(key, {subj: cleanSubj, chap: chap, states: []});
+                    sylMap.get(key).states.push(stat === 'completed' ? 'Completed' : stat === 'ongoing' ? 'Ongoing' : 'Pending');
+                });
+            });
+        }
+    });
+
+    // 2. Render Shared Syllabus List
+    let sylHtml = '';
+    let groupedSyl = {};
+    sylMap.forEach((val, key) => {
+        if(!groupedSyl[val.subj]) groupedSyl[val.subj] = [];
+        groupedSyl[val.subj].push(val);
+    });
+
+    if (Object.keys(groupedSyl).length === 0) {
+        sylHtml = '<div style="color:var(--grey); font-size:13px; font-weight:600; text-align:center; padding:10px;">No history found.</div>';
+    } else {
+        let segIdx = 0;
+        for (let subj in groupedSyl) {
+            groupedSyl[subj].forEach(item => {
+                let key = subj + '|||' + item.chap;
+                let defaultStat = isSingle ? item.states[0] : 'MIXED';
+                originalSylState[key] = defaultStat;
+                
+                let options = isSingle ? `
+                    <label><input type="radio" name="syl_${segIdx}" value="Completed" ${defaultStat==='Completed'?'checked':''}><span>Completed</span></label>
+                    <label><input type="radio" name="syl_${segIdx}" value="Ongoing" ${defaultStat==='Ongoing'?'checked':''}><span>Ongoing</span></label>
+                    <label><input type="radio" name="syl_${segIdx}" value="Pending" ${defaultStat==='Pending'?'checked':''}><span>Upcoming</span></label>
+                ` : `
+                    <label><input type="radio" name="syl_${segIdx}" value="MIXED" checked><span>Skip</span></label>
+                    <label><input type="radio" name="syl_${segIdx}" value="Completed"><span>Completed</span></label>
+                    <label><input type="radio" name="syl_${segIdx}" value="Ongoing"><span>Ongoing</span></label>
+                    <label><input type="radio" name="syl_${segIdx}" value="Pending"><span>Upcoming</span></label>
+                `;
+
+                sylHtml += `
+                <div class="list-item">
+                    <div>
+                      <div class="item-subj">${subj}</div>
+                      <div class="item-task">${item.chap}</div>
+                    </div>
+                    <div class="seg-ctrl syl exc-syl-seg" data-key="${key}" data-subj="${subj}" data-chap="${item.chap}">
+                        ${options}
+                    </div>
+                </div>`;
+                segIdx++;
+            });
+        }
+    }
+    document.getElementById('sylHistoryList').innerHTML = sylHtml;
+
+    // 3. Render Shared HW List
+    let hwHtml = '';
+    if (hwMap.size === 0) {
+        hwHtml = '<div style="color:var(--grey); font-size:13px; font-weight:600; text-align:center; padding:10px;">No history found.</div>';
+    } else {
+        let segIdx = 0;
+        hwMap.forEach((val, key) => {
+            let defaultStat = isSingle ? (val.states[0] ? "Done" : "Pending") : 'MIXED';
+            originalHWState[key] = defaultStat;
+            
+            let options = isSingle ? `
+                <label><input type="radio" name="hw_${segIdx}" value="Pending" ${defaultStat==='Pending'?'checked':''}><span>Pending</span></label>
+                <label><input type="radio" name="hw_${segIdx}" value="Done" ${defaultStat==='Done'?'checked':''}><span>Done</span></label>
+            ` : `
+                <label><input type="radio" name="hw_${segIdx}" value="MIXED" checked><span>Skip</span></label>
+                <label><input type="radio" name="hw_${segIdx}" value="Pending"><span>Pending</span></label>
+                <label><input type="radio" name="hw_${segIdx}" value="Done"><span>Done</span></label>
+            `;
+
+            hwHtml += `
+            <div class="list-item">
+                <div>
+                  <div class="item-subj">${val.subj}</div>
+                  <div class="item-task">${val.task}</div>
+                </div>
+                <div class="seg-ctrl hw exc-hw-seg" data-key="${key}" data-subj="${val.subj}" data-task="${val.task}">
+                    ${options}
+                </div>
+            </div>`;
+            segIdx++;
+        });
+    }
+    document.getElementById('hwHistoryList').innerHTML = hwHtml;
+  }
+
+  // --- THE PAYLOAD COMPILER ---
+  function executeCast() {
+    let payload = [];
+    let sNames = Array.from(selectedIds).map(id => ALL_STUDENTS[id].name);
+
+    if (currentTab === 'json') {
+      try {
+        let text = document.getElementById('jsonInput').value.trim().replace(/```json/g, '').replace(/```/g, '').trim();
+        payload = JSON.parse(text);
+        if(!Array.isArray(payload)) payload = [payload];
+      } catch(e) { showStatus("error", "Invalid JSON", "Check formatting"); return; }
+    } 
     else {
-      for (let subj in student.syllabus) {
-        let cleanSubj = subj.replace(/[^\x00-\x7F]/g, '').trim(); 
-        sylHtml += `<div style="font-size:12px; font-weight:700; color:var(--ink); background:var(--cream); padding:6px 10px; border-radius:6px; margin-top:10px;">${cleanSubj}</div>`;
+      // Tab: HW
+      if (currentTab === 'hw') {
+        document.querySelectorAll('.new-hw-row').forEach(row => {
+          const newSubj = row.querySelector('.newHwSubj').value.trim();
+          const newTask = row.querySelector('.newHwTask').value.trim();
+          
+          if (newSubj && newTask) {
+            sNames.forEach(name => payload.push({ studentName: name, type: "HW_Assigned", subject: newSubj, topic: newTask }));
+          }
+        });
         
-        const data = student.syllabus[subj];
-        const allChaps = [
-           ...((data.completed||[]).map(c => ({name: c, status: 'Completed'}))),
-           ...((data.ongoing||[]).map(c => ({name: c, status: 'Ongoing'}))),
-           ...((data.pending||[]).map(c => ({name: c, status: 'Pending'})))
-        ];
+        document.querySelectorAll('.exc-hw-seg').forEach(seg => {
+            const key = seg.getAttribute('data-key');
+            const checkedOpt = seg.querySelector('input[type="radio"]:checked');
+            const val = checkedOpt ? checkedOpt.value : 'MIXED';
+            if (val !== 'MIXED' && val !== originalHWState[key]) {
+                sNames.forEach(name => payload.push({ 
+                    studentName: name, type: "HW_Status", subject: seg.getAttribute('data-subj'), topic: seg.getAttribute('data-task'), status: val 
+                }));
+            }
+        });
+      }
+      // Tab: SYLLABUS
+      else if (currentTab === 'syl') {
+        const newSubj = document.getElementById('newSylSubj').value.trim();
+        const newChap = document.getElementById('newSylChap').value.trim();
+        const newStat = document.getElementById('newSylStatus').value;
         
-        allChaps.forEach(chap => {
-          let uniqueKey = cleanSubj + '|||' + chap.name;
-          originalSylState[uniqueKey] = chap.status;
-          sylHtml += `
-          <div class="list-item" style="padding-left:10px;">
-            <div class="item-details"><div class="item-task">${chap.name}</div></div>
-            <select class="syl-select" data-key="${uniqueKey}" data-subj="${cleanSubj}" data-chap="${chap.name}">
-              <option value="Completed" ${chap.status==='Completed'?'selected':''}>Completed</option>
-              <option value="Ongoing" ${chap.status==='Ongoing'?'selected':''}>Ongoing</option>
-              <option value="Pending" ${chap.status==='Pending'?'selected':''}>Upcoming</option>
-            </select>
-          </div>`;
+        if (newSubj && newChap) {
+          sNames.forEach(name => payload.push({ studentName: name, type: "Syllabus", subject: newSubj, topic: newChap, status: newStat }));
+        }
+        
+        document.querySelectorAll('.exc-syl-seg').forEach(seg => {
+            const key = seg.getAttribute('data-key');
+            const checkedOpt = seg.querySelector('input[type="radio"]:checked');
+            const val = checkedOpt ? checkedOpt.value : 'MIXED';
+            if (val !== 'MIXED' && val !== originalSylState[key]) {
+                sNames.forEach(name => payload.push({ 
+                    studentName: name, type: "Syllabus", subject: seg.getAttribute('data-subj'), topic: seg.getAttribute('data-chap'), status: val 
+                }));
+            }
         });
       }
     }
-    document.getElementById('sylList').innerHTML = sylHtml;
+
+    if(payload.length === 0) { showStatus("error", "Empty Data", "Add or update a task to sync."); return; }
+    fireWebhook(payload);
   }
 
-  async function sendPayload(payloadArray, btnId, statusId) {
-    const btn = document.getElementById(btnId);
-    const statusBox = document.getElementById(statusId);
-    if(payloadArray.length === 0) {
-      statusBox.className = "status-box error"; statusBox.innerText = "No changes detected to sync."; statusBox.style.display = "block";
-      setTimeout(() => statusBox.style.display="none", 3000); return;
-    }
-    
-    btn.disabled = true; let oldText = btn.innerText; btn.innerText = "⏳ Syncing..."; statusBox.style.display = "none";
+  async function fireWebhook(payload) {
+    showStatus("load", "Casting...", `Firing ${payload.length} objects`);
     try {
-      const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payloadArray), headers: { 'Content-Type': 'text/plain;charset=utf-8' }});
+      const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }});
       const result = await res.json();
       if (result.status === 'success' || result.status === 'ok') {
-        statusBox.className = "status-box success"; statusBox.innerText = `✅ Successfully synced ${payloadArray.length} updates!`;
-        setTimeout(() => { fetchDatabase(); document.getElementById('newHwSubj').value=''; document.getElementById('newHwTask').value=''; document.getElementById('newSylChap').value=''; }, 1500);
-      } else throw new Error("Server rejected update.");
-    } catch (e) { statusBox.className = "status-box error"; statusBox.innerText = "❌ Error: " + e.message; }
-    
-    statusBox.style.display = "block"; btn.disabled = false; btn.innerText = oldText;
-  }
-
-  function syncJSON() {
-    try {
-      let text = document.getElementById('jsonInput').value.trim();
-      let cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      let payload = JSON.parse(cleanText);
-      if(!Array.isArray(payload)) payload = [payload];
-      sendPayload(payload, 'btn-json', 'status-json');
-      document.getElementById('jsonInput').value = '';
-    } catch(e) {
-      const statusBox = document.getElementById('status-json');
-      statusBox.className = "status-box error"; statusBox.innerText = "⚠️ Invalid JSON format."; statusBox.style.display = "block";
+        showStatus("success", "BOOM! 💥", "Dashboards live updated.");
+        setTimeout(() => { 
+          closeStatus(); 
+          init(); 
+          clearInputs(); 
+        }, 1500);
+      } else throw new Error("Server rejected.");
+    } catch (e) { 
+      showStatus("error", "Cast Failed", "Connection error.");
+      setTimeout(closeStatus, 2000);
     }
   }
 
-  function syncHW() {
-    let payload = [];
-    const id = document.getElementById('globalStudent').value;
-    const sName = ALL_STUDENTS[id].name;
-
-    const newSubj = document.getElementById('newHwSubj').value.trim();
-    const newTask = document.getElementById('newHwTask').value.trim();
-    if (newSubj && newTask) payload.push({ studentName: sName, type: "HW_Assigned", subject: newSubj, topic: newTask });
-
-    document.querySelectorAll('#hwList input[type="checkbox"]').forEach(box => {
-      const key = box.getAttribute('data-key');
-      if (box.checked !== originalHWState[key]) {
-        payload.push({ studentName: sName, type: "HW_Status", subject: box.getAttribute('data-subj'), topic: box.getAttribute('data-task'), status: box.checked ? "Done" : "Pending" });
-      }
-    });
-    sendPayload(payload, 'btn-hw', 'status-hw');
+  function clearInputs() {
+    document.getElementById('newHwContainer').innerHTML = `
+      <div class="new-hw-row">
+        <div class="fld" style="flex:1;"><label>Subject</label><input type="text" class="newHwSubj" placeholder="e.g. Maths"></div>
+        <div class="fld" style="flex:2;"><label>Task Details</label><input type="text" class="newHwTask" placeholder="e.g. Ex 2.1 Q1-5"></div>
+        <button class="remove-hw-btn" style="display:none;" onclick="this.parentElement.remove()">✕</button>
+      </div>
+    `;
+    document.getElementById('newSylChap').value = '';
+    document.getElementById('jsonInput').value = '';
   }
 
-  function syncSyllabus() {
-    let payload = [];
-    const id = document.getElementById('globalStudent').value;
-    const sName = ALL_STUDENTS[id].name;
-
-    const newSubj = document.getElementById('newSylSubj').value.trim();
-    const newChap = document.getElementById('newSylChap').value.trim();
-    const newStat = document.getElementById('newSylStatus').value;
-    if (newSubj && newChap) payload.push({ studentName: sName, type: "Syllabus", subject: newSubj, topic: newChap, status: newStat });
-
-    document.querySelectorAll('#sylList select').forEach(sel => {
-      const key = sel.getAttribute('data-key');
-      if (sel.value !== originalSylState[key]) {
-        payload.push({ studentName: sName, type: "Syllabus", subject: sel.getAttribute('data-subj'), topic: sel.getAttribute('data-chap'), status: sel.value });
-      }
-    });
-    sendPayload(payload, 'btn-syl', 'status-syl');
+  const overlay = document.getElementById('statusOverlay');
+  function showStatus(type, title, sub) {
+    overlay.style.display = 'flex';
+    document.getElementById('scTitle').innerText = title;
+    document.getElementById('scSub').innerText = sub;
+    let icon = document.getElementById('scIcon');
+    if(type === 'load') icon.innerText = "🚀";
+    if(type === 'success') icon.innerText = "✅";
+    if(type === 'error') icon.innerText = "❌";
   }
+  function closeStatus() { overlay.style.display = 'none'; }
+
+  window.onload = init;
 </script>
 </body>
 </html>
