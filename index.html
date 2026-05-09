@@ -230,21 +230,23 @@
     <div id="tab-admin" class="tab-content">
       <div class="op-divider"><span>— 1-TAP ADMISSION —</span></div>
       <div class="section-box" style="background:var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 24px;">
-        <div style="display:flex; gap:12px; margin-bottom:8px;">
-          <div style="flex:1;">
-            <label>TTC ID NUMBER</label>
-            <div class="ttc-id-wrapper">
-              <div class="ttc-id-prefix">TTC</div>
-              <input type="text" inputmode="numeric" id="newStuIdNum" placeholder="46" oninput="checkIdAvailability()" autocomplete="off">
-            </div>
-            <!-- Live Availability Checker -->
-            <div id="idStatusText" class="id-status"></div>
+        
+        <!-- VERTICAL STACK FOR ID AND NAME -->
+        <div style="margin-bottom:12px;">
+          <label>TTC ID NUMBER</label>
+          <div class="ttc-id-wrapper">
+            <div class="ttc-id-prefix">TTC</div>
+            <input type="text" inputmode="numeric" id="newStuIdNum" placeholder="46" oninput="checkIdAvailability()" autocomplete="off">
           </div>
-          <div style="flex:2;">
-            <label>Student Name</label>
-            <input type="text" id="newStuName" placeholder="e.g. Aarav Sharma">
-          </div>
+          <!-- Live Availability Checker -->
+          <div id="idStatusText" class="id-status"></div>
         </div>
+        
+        <div style="margin-bottom:16px;">
+          <label>Student Name</label>
+          <input type="text" id="newStuName" placeholder="e.g. Aarav Sharma">
+        </div>
+
         <div style="display:flex; gap:12px; margin-bottom:16px;">
           <div style="flex:1;"><label>Class</label><input type="text" id="newStuClass" placeholder="e.g. 10"></div>
           <div style="flex:1;"><label>Board</label><input type="text" id="newStuBoard" placeholder="e.g. CBSE"></div>
