@@ -64,8 +64,8 @@
     .cs-pill .del { color: var(--grey); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: #E2E8F0; font-size: 10px; }
 
     /* Tabs */
-    .tabs { display: flex; gap: 8px; margin-bottom: 24px; background: var(--light); padding: 4px; border-radius: 12px; }
-    .tab-btn { flex: 1; padding: 10px 4px; font-size: 13px; font-weight: 700; color: var(--grey); background: transparent; border: none; border-radius: 8px; cursor: pointer; transition: 0.15s; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 24px; background: var(--light); padding: 4px; border-radius: 12px; overflow-x: auto;}
+    .tab-btn { flex: 1; min-width: 65px; padding: 10px 4px; font-size: 13px; font-weight: 700; color: var(--grey); background: transparent; border: none; border-radius: 8px; cursor: pointer; transition: 0.15s; }
     .tab-btn.active { background: var(--white); color: var(--blue); box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
     .tab-content { display: none; animation: fadeUp 0.2s ease; }
     .tab-content.active { display: block; }
@@ -74,9 +74,16 @@
     /* Inputs & Layout */
     .fld { margin-bottom: 16px; }
     label { display: block; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: var(--grey); margin-bottom: 6px; }
-    input[type="text"], select, textarea { width: 100%; padding: 14px 16px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; border: 1.5px solid var(--border); border-radius: 12px; background: var(--white); color: var(--dark); outline: none; transition: 0.15s; }
-    input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(67,97,238,0.1); }
+    input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 14px 16px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; border: 1.5px solid var(--border); border-radius: 12px; background: var(--white); color: var(--dark); outline: none; transition: 0.15s; }
+    input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(67,97,238,0.1); }
     textarea { height: 100px; resize: vertical; }
+
+    /* Admin specific input styling */
+    .ttc-id-wrapper { display:flex; border:1.5px solid var(--border); border-radius:12px; overflow:hidden; background:var(--white); transition: 0.15s; }
+    .ttc-id-wrapper:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(67,97,238,0.1); }
+    .ttc-id-prefix { background:var(--light); padding:14px 16px; font-weight:800; color:var(--dark); border-right:1.5px solid var(--border); }
+    .ttc-id-wrapper input { border:none; border-radius:0; box-shadow:none; flex:1; }
+    .ttc-id-wrapper input:focus { border:none; box-shadow:none; }
 
     .op-divider { text-align: center; margin: 28px 0 20px; position: relative; }
     .op-divider::before { content:''; position:absolute; left:0; top:50%; width:100%; height:1px; background:var(--border); z-index:1; }
@@ -166,6 +173,7 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('hw')">📚 Homework</button>
       <button class="tab-btn" onclick="switchTab('syl')">✅ Syllabus</button>
+      <button class="tab-btn" onclick="switchTab('admin')">🛡️ Admin</button>
       <button class="tab-btn" onclick="switchTab('json')">⚙️ JSON</button>
     </div>
 
@@ -206,6 +214,56 @@
       <div id="syl-history-container" style="display:none;">
          <div class="op-divider"><span>— UPDATE EXISTING —</span></div>
          <div id="sylHistoryList"></div>
+      </div>
+    </div>
+
+    <!-- ADMIN OPERATIONS TAB -->
+    <div id="tab-admin" class="tab-content">
+      <div class="op-divider"><span>— 1-TAP ADMISSION —</span></div>
+      <div class="section-box" style="background:var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 24px;">
+        <div style="display:flex; gap:12px; margin-bottom:16px;">
+          <div style="flex:1;">
+            <label>TTC ID NUMBER</label>
+            <div class="ttc-id-wrapper">
+              <div class="ttc-id-prefix">TTC</div>
+              <input type="number" id="newStuIdNum" placeholder="46">
+            </div>
+          </div>
+          <div style="flex:2;">
+            <label>Student Name</label>
+            <input type="text" id="newStuName" placeholder="e.g. Aarav Sharma">
+          </div>
+        </div>
+        <div style="display:flex; gap:12px; margin-bottom:16px;">
+          <div style="flex:1;"><label>Class</label><input type="text" id="newStuClass" placeholder="e.g. 10"></div>
+          <div style="flex:1;"><label>Board</label><input type="text" id="newStuBoard" placeholder="e.g. CBSE"></div>
+        </div>
+        <div class="fld"><label>Parent Name</label><input type="text" id="newStuParent" placeholder="e.g. Mr. Sharma"></div>
+        <button class="add-more-btn" style="border-color:var(--green); color:var(--green); background:#ECFDF5; margin-bottom:0;" onclick="adminAddStudent()">➕ Enroll Student</button>
+      </div>
+
+      <div class="op-divider"><span>— MANAGE ROSTER —</span></div>
+      <div class="section-box" style="background:var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 24px;">
+        <div class="fld">
+          <label>Select Student to Delete</label>
+          <select id="deleteStuSelect" style="width:100%; padding:14px; border:1.5px solid var(--border); border-radius:12px; background:var(--white); font-weight:600;">
+            <option value="">-- Choose Student --</option>
+          </select>
+        </div>
+        <button id="delStuBtn" class="add-more-btn" style="border-color:var(--rust); color:var(--rust); background:#FEF2F2; margin-bottom:0;" onclick="adminDeleteStudent()">🧨 Erase Student</button>
+      </div>
+
+      <div class="op-divider"><span>— DATABASE OPTIMIZER —</span></div>
+      <div class="section-box" style="background:var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 16px;">
+        <div class="fld">
+          <label>Prune Homework Older Than</label>
+          <select id="pruneDaysSelect" style="width:100%; padding:14px; border:1.5px solid var(--border); border-radius:12px; background:var(--white); font-weight:600;">
+            <option value="30">30 Days</option>
+            <option value="60">60 Days</option>
+            <option value="90">90 Days</option>
+          </select>
+        </div>
+        <button class="add-more-btn" style="border-color:var(--blue); color:var(--blue); background:#EFF6FF; margin-bottom:0;" onclick="adminPruneDb()">⚡ Clean Old Data</button>
       </div>
     </div>
 
@@ -282,9 +340,20 @@
       
       buildFilters();
       renderRoster();
+      populateAdminDropdown(); // Fill delete dropdown
     } catch (e) {
       document.getElementById('db-loader').innerHTML = "❌ Failed to connect to database. Check URL.";
     }
+  }
+
+  function populateAdminDropdown() {
+    const sel = document.getElementById('deleteStuSelect');
+    let html = '<option value="">-- Choose Student --</option>';
+    let ids = Object.keys(ALL_STUDENTS).sort((a,b) => ALL_STUDENTS[a].name.localeCompare(ALL_STUDENTS[b].name));
+    ids.forEach(id => {
+      html += `<option value="${id}">${ALL_STUDENTS[id].name} (${id})</option>`;
+    });
+    sel.innerHTML = html;
   }
 
   function buildFilters() {
@@ -589,6 +658,70 @@
     document.getElementById('hwHistoryList').innerHTML = hwHtml;
   }
 
+  // ══════════════════════════════════════════════
+  // ADMIN OPERATIONS: ADD / DELETE / PRUNE
+  // ══════════════════════════════════════════════
+  function adminAddStudent() {
+    const num = document.getElementById('newStuIdNum').value.trim();
+    const name = document.getElementById('newStuName').value.trim();
+    const cls = document.getElementById('newStuClass').value.trim();
+    const board = document.getElementById('newStuBoard').value.trim();
+    const parent = document.getElementById('newStuParent').value.trim();
+    
+    if (!num || !name || !cls || !board || !parent) {
+       showStatus("error", "Missing Info", "Please fill all boxes.");
+       setTimeout(closeStatus, 2000); return;
+    }
+    
+    const ttcId = "TTC" + num;
+    if (ALL_STUDENTS[ttcId]) {
+       showStatus("error", "ID Taken", "That TTC ID is already in use.");
+       setTimeout(closeStatus, 2000); return;
+    }
+    
+    let payload = [{ type: 'ADD_STUDENT', ttcId: ttcId, studentName: name, className: cls, boardName: board, parentName: parent }];
+    fireWebhook(payload);
+    
+    document.getElementById('newStuIdNum').value = ''; document.getElementById('newStuName').value = '';
+    document.getElementById('newStuClass').value = ''; document.getElementById('newStuBoard').value = '';
+    document.getElementById('newStuParent').value = '';
+  }
+
+  let delClickCount = 0; let delTimeout;
+  function adminDeleteStudent() {
+    const sel = document.getElementById('deleteStuSelect');
+    const stuId = sel.value;
+    if (!stuId) { showStatus("error", "Select Student", "Choose someone to delete."); setTimeout(closeStatus, 2000); return; }
+    
+    const btn = document.getElementById('delStuBtn');
+    
+    if (delClickCount === 0) {
+      delClickCount = 1;
+      btn.style.background = 'var(--rust)'; btn.style.color = 'var(--white)';
+      btn.innerText = '⚠️ Tap Again to Permanently Erase';
+      
+      delTimeout = setTimeout(() => {
+        delClickCount = 0;
+        btn.style.background = '#FEF2F2'; btn.style.color = 'var(--rust)';
+        btn.innerText = '🧨 Erase Student';
+      }, 3000);
+    } else {
+      clearTimeout(delTimeout); delClickCount = 0;
+      btn.style.background = '#FEF2F2'; btn.style.color = 'var(--rust)';
+      btn.innerText = '🧨 Erase Student';
+      
+      let payload = [{ type: 'DELETE_STUDENT', ttcId: stuId, studentName: ALL_STUDENTS[stuId].name }];
+      fireWebhook(payload);
+      sel.value = '';
+    }
+  }
+
+  function adminPruneDb() {
+    const days = document.getElementById('pruneDaysSelect').value;
+    let payload = [{ type: 'PRUNE_DB', days: parseInt(days) }];
+    fireWebhook(payload);
+  }
+
   // --- THE PAYLOAD COMPILER ---
   function executeCast() {
     let payload = [];
@@ -652,15 +785,15 @@
   }
 
   async function fireWebhook(payload) {
-    showStatus("load", "Casting...", `Firing ${payload.length} objects`);
+    showStatus("load", "Executing...", `Processing command...`);
     try {
       const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }});
       const result = await res.json();
       if (result.status === 'success' || result.status === 'ok') {
-        showStatus("success", "BOOM! 💥", "Dashboards live updated.");
+        showStatus("success", "BOOM! 💥", "Database live updated.");
         setTimeout(() => { 
           closeStatus(); 
-          init(); 
+          init(); // Refresh data globally
           clearInputs(); 
         }, 1500);
       } else throw new Error("Server rejected.");
