@@ -52,6 +52,7 @@
     .stu-check.selected { background: var(--rust); border-color: var(--rust); color: var(--white); box-shadow: 0 4px 10px rgba(217,79,43,0.2); }
     .stu-name { font-size: 13px; font-weight: 700; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; color: var(--dark); }
     .stu-check.selected .stu-name { color: var(--white); }
+    .stu-name .surname { font-size: 0.75em; opacity: 0.6; font-weight: 600; }
     .stu-cls { font-size: 10px; font-weight: 700; color: var(--grey); margin-top: 2px; }
     .stu-check.selected .stu-cls { color: rgba(255,255,255,0.7); }
 
@@ -79,11 +80,14 @@
     textarea { height: 100px; resize: vertical; }
 
     /* Admin specific input styling */
-    .ttc-id-wrapper { display:flex; border:1.5px solid var(--border); border-radius:12px; overflow:hidden; background:var(--white); transition: 0.15s; }
+    .ttc-id-wrapper { display:flex; align-items:stretch; border:2px solid var(--border); border-radius:12px; overflow:hidden; background:var(--white); transition: 0.15s; }
     .ttc-id-wrapper:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(67,97,238,0.1); }
-    .ttc-id-prefix { background:var(--light); padding:14px 16px; font-weight:800; color:var(--dark); border-right:1.5px solid var(--border); }
-    .ttc-id-wrapper input { border:none; border-radius:0; box-shadow:none; flex:1; }
+    .ttc-id-prefix { background:var(--light); padding:14px 16px; font-weight:800; font-size:16px; color:var(--dark); border-right:2px solid var(--border); display:flex; align-items:center; }
+    .ttc-id-wrapper input { border:none; border-radius:0; box-shadow:none; flex:1; font-size:18px; font-weight:800; color:var(--blue); padding:14px 16px; letter-spacing:1px; }
     .ttc-id-wrapper input:focus { border:none; box-shadow:none; }
+    .id-status { font-size: 11px; font-weight: 700; margin-top: 6px; min-height: 14px; transition: 0.2s; }
+    .id-status.avail { color: var(--green); }
+    .id-status.taken { color: var(--rust); }
 
     .op-divider { text-align: center; margin: 28px 0 20px; position: relative; }
     .op-divider::before { content:''; position:absolute; left:0; top:50%; width:100%; height:1px; background:var(--border); z-index:1; }
@@ -226,8 +230,11 @@
             <label>TTC ID NUMBER</label>
             <div class="ttc-id-wrapper">
               <div class="ttc-id-prefix">TTC</div>
-              <input type="number" id="newStuIdNum" placeholder="46">
+              <!-- Changed to inputmode="numeric" type="text" to prevent browser arrows from squishing the box -->
+              <input type="text" inputmode="numeric" id="newStuIdNum" placeholder="46" oninput="checkIdAvailability()" autocomplete="off">
             </div>
+            <!-- Live Availability Checker -->
+            <div id="idStatusText" class="id-status"></div>
           </div>
           <div style="flex:2;">
             <label>Student Name</label>
@@ -400,12 +407,17 @@
     filteredIds.forEach(id => {
       let isSel = selectedIds.has(id);
       let s = ALL_STUDENTS[id];
-      // Get first name for pill view to save space
-      let firstName = s.name.split(' ')[0];
+      
+      // Extract First Name and Surname
+      let nameParts = s.name.split(' ');
+      let firstName = nameParts[0];
+      let lastName = nameParts.slice(1).join(' ');
+      let surnameHtml = lastName ? `<span class="surname"> ${lastName}</span>` : '';
+
       html += `
         <label class="stu-check ${isSel ? 'selected' : ''}">
           <input type="checkbox" value="${id}" ${isSel ? 'checked' : ''} onchange="toggleStudent('${id}', this)">
-          <span class="stu-name">${firstName}</span>
+          <span class="stu-name">${firstName}${surnameHtml}</span>
           <span class="stu-cls">${s.class}</span>
         </label>
       `;
@@ -661,6 +673,25 @@
   // ══════════════════════════════════════════════
   // ADMIN OPERATIONS: ADD / DELETE / PRUNE
   // ══════════════════════════════════════════════
+  
+  // Real-time ID Checker
+  function checkIdAvailability() {
+    const num = document.getElementById('newStuIdNum').value.trim();
+    const statusEl = document.getElementById('idStatusText');
+    if (!num) {
+      statusEl.innerHTML = '';
+      return;
+    }
+    const fullId = "TTC" + num;
+    if (ALL_STUDENTS[fullId]) {
+      statusEl.innerHTML = `⚠️ ID taken by <b>${ALL_STUDENTS[fullId].name}</b>`;
+      statusEl.className = 'id-status taken';
+    } else {
+      statusEl.innerHTML = `✅ ID <b>${fullId}</b> is available`;
+      statusEl.className = 'id-status avail';
+    }
+  }
+
   function adminAddStudent() {
     const num = document.getElementById('newStuIdNum').value.trim();
     const name = document.getElementById('newStuName').value.trim();
@@ -685,6 +716,7 @@
     document.getElementById('newStuIdNum').value = ''; document.getElementById('newStuName').value = '';
     document.getElementById('newStuClass').value = ''; document.getElementById('newStuBoard').value = '';
     document.getElementById('newStuParent').value = '';
+    document.getElementById('idStatusText').innerHTML = ''; // Reset checker
   }
 
   let delClickCount = 0; let delTimeout;
