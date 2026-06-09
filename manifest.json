@@ -1,0 +1,41 @@
+{
+  "name": "TTC Command Center",
+  "short_name": "TTC Master",
+  "description": "Master Portal and roster management for Tushar Tuition Classes.",
+  "start_url": "/TTC-Master-Portal/",
+  "scope": "/TTC-Master-Portal/",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#4361EE",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-master.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-master.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Homework",
+      "short_name": "Homework",
+      "description": "Assign new homework tasks",
+      "url": "/TTC-Master-Portal/?tab=hw",
+      "icons": [{ "src": "icon-master.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "1-Tap Admission",
+      "short_name": "Admission",
+      "description": "Enroll a new student",
+      "url": "/TTC-Master-Portal/?tab=admin",
+      "icons": [{ "src": "icon-master.png", "sizes": "192x192" }]
+    }
+  ]
+}
