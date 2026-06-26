@@ -105,7 +105,7 @@
     /* Segmented Controls & List Items */
     .list-item { display: flex; flex-direction: column; gap: 8px; padding: 16px; background: var(--white); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
     .item-subj { font-size: 10px; font-weight: 800; color: var(--rust); text-transform: uppercase; letter-spacing: 0.5px; }
-    .item-task { font-size: 14px; font-weight: 700; color: var(--dark); line-height: 1.3; }
+    .item-task { font-size: 14px; font-weight: 700; color: var(--dark); line-height: 1.3; word-break: break-word; white-space: normal; }
     
     .seg-ctrl { display: flex; background: var(--light); padding: 4px; border-radius: 10px; gap: 4px; width: 100%; }
     .seg-ctrl label { flex: 1; margin: 0; cursor: pointer; text-transform: none; font-weight: normal; letter-spacing: normal; }
@@ -186,6 +186,7 @@
       <button class="tab-btn" onclick="switchTab('syl')">✅ Syllabus</button>
       <button class="tab-btn" onclick="switchTab('admin')">🛡️ Admin</button>
       <button class="tab-btn" onclick="switchTab('json')">⚙️ JSON</button>
+      <button class="tab-btn" onclick="switchTab('settings')">🛠️ Settings</button>
     </div>
 
     <div id="tab-hw" class="tab-content active">
@@ -222,6 +223,7 @@
       <div class="fld"><label>Chapter Name</label><input type="text" id="newSylChap" placeholder="e.g. Current Electricity"></div>
       <div id="syl-history-container" style="display:none;">
          <div class="op-divider"><span>— UPDATE EXISTING —</span></div>
+         <div class="fld"><input type="text" id="sylSearch" placeholder="🔍 Search syllabus..." onkeyup="filterSyllabus()" style="margin-bottom:12px;"></div>
          <div id="sylHistoryList"></div>
       </div>
     </div>
@@ -279,6 +281,16 @@
       <div class="fld">
         <label>Raw JSON Data</label>
         <textarea id="jsonInput" placeholder='[{"studentName": "Aarav", "type": "Test"...}]'></textarea>
+      </div>
+    </div>
+
+    <div id="tab-settings" class="tab-content">
+      <div class="op-divider"><span>— AI ASSISTANT PROMPT —</span></div>
+      <div class="section-box" style="background:var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 16px;">
+        <div style="font-size:13px; color:var(--grey); margin-bottom:16px; line-height:1.4;">Copy this prompt and send it to any AI along with your raw updates. It will give you the perfect JSON to paste in the JSON tab.</div>
+        <button class="submit-btn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="copyAiPrompt(this)">
+          📋 Copy AI Prompt
+        </button>
       </div>
     </div>
 
@@ -477,6 +489,34 @@
     updateUIState();
   }
 
+  function filterSyllabus() {
+    let query = document.getElementById('sylSearch').value.toLowerCase();
+    let items = document.querySelectorAll('#sylHistoryList .list-item, #sylHistoryList .swipe-wrapper');
+    items.forEach(item => {
+      let text = item.innerText.toLowerCase();
+      item.style.display = text.includes(query) ? 'flex' : 'none';
+    });
+  }
+
+  function copyAiPrompt(btn) {
+    const promptText = `Act as a data structurer for my tuition class dashboard. I will give you natural language updates about my students. You must convert these updates into a strict JSON array.
+
+Rules:
+The "type" MUST be exactly one of: "Test", "HW_Assigned", "HW_Status", "Syllabus", or "Message".
+Output ONLY the raw JSON array. Do not include markdown formatting (like \`\`\`json), and do not say anything else before or after the JSON.
+
+Format for each object:
+[{"studentName": "Full Name", "type": "Type", "subject": "Subject", "topic": "Chapter or Task", "score": "Number or blank", "total": "Number or blank", "status": "Done/Pending/blank", "text": "Remarks"}]
+
+My Update:
+`;
+    navigator.clipboard.writeText(promptText).then(() => {
+      const origText = btn.innerHTML;
+      btn.innerHTML = '✅ Copied!';
+      setTimeout(() => btn.innerHTML = origText, 2000);
+    }).catch(err => alert("Failed to copy text."));
+  }
+
   function addHwRow() {
     const container = document.getElementById('newHwContainer');
     const row = document.createElement('div'); row.className = 'new-hw-row';
@@ -577,6 +617,21 @@
     let newTopic = document.getElementById('seNewTask').value.trim();
     if(!newTopic || newTopic === oldTopic) { document.getElementById('sniperEditModal').style.display='none'; return; }
     
+    // Optimistic UI Update
+    if (activeSwipe) {
+        activeSwipe.querySelector('.item-task').innerText = newTopic;
+        let hwSeg = activeSwipe.querySelector('.exc-hw-seg');
+        if(hwSeg) {
+           hwSeg.setAttribute('data-task', newTopic);
+           let oldKey = hwSeg.getAttribute('data-key');
+           let newKey = oldKey.replace(oldTopic, newTopic);
+           hwSeg.setAttribute('data-key', newKey);
+           originalHWState[newKey] = originalHWState[oldKey];
+        }
+        activeSwipe.style.transform = 'translateX(0)';
+        activeSwipe = null;
+    }
+    
     let payload = sNames.map(name => ({ type: 'EDIT_HW', studentName: name, subject: subj, oldTopic: oldTopic, newTopic: newTopic }));
     document.getElementById('sniperEditModal').style.display='none';
     fireWebhook(payload);
@@ -586,6 +641,14 @@
     let sNames = Array.from(selectedIds).map(id => ALL_STUDENTS[id].name);
     let subj = document.getElementById('sdSubj').value;
     let oldTopic = document.getElementById('sdOldTask').value;
+    
+    // Optimistic UI Update
+    if (activeSwipe) {
+        let swipeWrapper = activeSwipe.closest('.swipe-wrapper');
+        if (swipeWrapper) swipeWrapper.remove();
+        activeSwipe = null;
+    }
+
     let payload = sNames.map(name => ({ type: 'DELETE_HW', studentName: name, subject: subj, oldTopic: oldTopic }));
     document.getElementById('sniperDeleteModal').style.display='none';
     fireWebhook(payload);
@@ -649,6 +712,19 @@
         let segIdx = 0;
         hwMap.forEach((val, key) => {
             let defaultStat = isSingle ? (val.states[0] ? "Done" : "Pending") : 'MIXED'; originalHWState[key] = defaultStat;
+            
+            let summaryHtml = '';
+            if (!isSingle) {
+                let doneNames = [];
+                let pendingNames = [];
+                let sIdArray = Array.from(selectedIds);
+                for(let i=0; i<sIdArray.length; i++) {
+                   let name = ALL_STUDENTS[sIdArray[i]].name.split(' ')[0];
+                   if (val.states[i]) doneNames.push(name); else pendingNames.push(name);
+                }
+                summaryHtml = `<div style="font-size:11px; margin-top:6px;"><span style="color:var(--green); font-weight:bold;">Done:</span> <span style="color:var(--grey);">${doneNames.length ? doneNames.join(', ') : 'None'}</span> | <span style="color:var(--rust); font-weight:bold;">Pending:</span> <span style="color:var(--grey);">${pendingNames.length ? pendingNames.join(', ') : 'None'}</span></div>`;
+            }
+
             let options = isSingle ? `
                 <label><input type="radio" name="hw_${segIdx}" value="Pending" ${defaultStat==='Pending'?'checked':''}><span>Pending</span></label>
                 <label><input type="radio" name="hw_${segIdx}" value="Done" ${defaultStat==='Done'?'checked':''}><span>Done</span></label>
@@ -676,7 +752,7 @@
                   </div>
               </div>`;
             } else {
-              hwHtml += `<div class="list-item"><div><div class="item-subj">${val.subj}</div><div class="item-task">${val.task}</div></div><div class="seg-ctrl hw exc-hw-seg" data-key="${key}" data-subj="${val.subj}" data-task="${val.task}">${options}</div></div>`;
+              hwHtml += `<div class="list-item"><div><div class="item-subj">${val.subj}</div><div class="item-task">${val.task}</div>${summaryHtml}</div><div class="seg-ctrl hw exc-hw-seg" data-key="${key}" data-subj="${val.subj}" data-task="${val.task}">${options}</div></div>`;
             }
             segIdx++;
         });
@@ -767,7 +843,8 @@
       const result = await res.json();
       if (result.status === 'success' || result.status === 'ok') {
         showStatus("success", "BOOM! 💥", "Database live updated.");
-        setTimeout(() => { closeStatus(); init(); clearInputs(); }, 1500);
+        setTimeout(() => { closeStatus(); clearInputs(); }, 1500);
+        setTimeout(() => { init(); }, 3500); // Delayed refresh so UI remains optimistic
       } else throw new Error("Server rejected.");
     } catch (e) { showStatus("error", "Cast Failed", "Connection error."); setTimeout(closeStatus, 2000); }
   }
