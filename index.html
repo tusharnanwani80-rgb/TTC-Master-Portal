@@ -109,9 +109,11 @@
     
     .seg-ctrl { display: flex; background: var(--light); padding: 4px; border-radius: 10px; gap: 4px; width: 100%; }
     .seg-ctrl label { flex: 1; margin: 0; cursor: pointer; text-transform: none; font-weight: normal; letter-spacing: normal; }
-    .seg-ctrl input { display: none; }
-    .seg-ctrl span { display: block; text-align: center; font-size: 11px; font-weight: 700; padding: 8px 2px; border-radius: 8px; color: var(--grey); transition: 0.15s; }
-    .seg-ctrl input:checked + span { background: var(--white); color: var(--dark); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .seg-ctrl input[type="radio"] { display: none; }
+    .seg-ctrl span { display: block; text-align: center; padding: 10px 0; border-radius: 8px; font-size: 13px; font-weight: 700; color: var(--grey); transition: all 0.2s; }
+    .seg-ctrl.mini { padding: 2px; width: auto; flex: none; width: 140px; }
+    .seg-ctrl.mini span { padding: 4px 0; font-size: 11px; }
+    .seg-ctrl input[type="radio"]:checked + span { background: var(--white); color: var(--dark); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .seg-ctrl.syl input[value="Completed"]:checked + span { color: var(--green); }
     .seg-ctrl.syl input[value="Ongoing"]:checked + span { color: var(--orange); }
     .seg-ctrl.hw input[value="Done"]:checked + span { color: var(--green); }
@@ -139,6 +141,14 @@
     .submit-btn { padding: 14px 28px; background: var(--rust); color: var(--white); font-size: 15px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; transition: 0.15s; box-shadow: 0 4px 12px rgba(217,79,43,0.2); }
     .submit-btn:active { transform: scale(0.96); box-shadow: 0 2px 6px rgba(217,79,43,0.2); }
 
+    /* Modals */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(2px); padding: 20px; }
+    .modal-box { background: var(--white); padding: 24px; border-radius: 20px; border: 1px solid var(--border); width: 100%; max-width: 360px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); animation: fadeUp 0.2s ease; }
+    .modal-title { font-size: 18px; font-weight: 800; color: var(--dark); margin-bottom: 16px; }
+    .modal-btn { padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 700; border: none; cursor: pointer; flex: 1; }
+    .modal-btn.secondary { background: var(--light); color: var(--dark); }
+    .modal-btn.danger { background: #FEE2E2; color: #EF4444; }
+
     /* Overlays */
     .status-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(2px); padding: 20px; }
     .status-card { background: var(--white); padding: 24px; border-radius: 20px; border: 1px solid var(--border); text-align: center; width: 100%; max-width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); animation: fadeUp 0.2s ease; }
@@ -149,7 +159,7 @@
 </head>
 <body>
 
-<header class="hdr">
+<header class="hdr" style="display:flex; justify-content:space-between; align-items:center;">
   <div style="display:flex; align-items:center; gap:12px;">
     <img class="hdr-logo" src="https://i.postimg.cc/x9mDND2Q/Ttc-logo.png" alt="TTC">
     <div>
@@ -157,6 +167,9 @@
       <div class="hdr-badge">Master Portal</div>
     </div>
   </div>
+  <button onclick="document.getElementById('settingsModal').style.display='flex'" style="background:var(--white); border:2px solid var(--dark); border-radius:12px; padding:6px 10px; cursor:pointer; box-shadow:2px 2px 0 var(--dark); font-size:18px; display:flex; align-items:center; justify-content:center; transition:transform 0.1s;">
+    ⚙️
+  </button>
 </header>
 
 <div class="container">
@@ -186,7 +199,6 @@
       <button class="tab-btn" onclick="switchTab('syl')">✅ Syllabus</button>
       <button class="tab-btn" onclick="switchTab('admin')">🛡️ Admin</button>
       <button class="tab-btn" onclick="switchTab('json')">⚙️ JSON</button>
-      <button class="tab-btn" onclick="switchTab('settings')">🛠️ Settings</button>
     </div>
 
     <div id="tab-hw" class="tab-content active">
@@ -284,16 +296,6 @@
       </div>
     </div>
 
-    <div id="tab-settings" class="tab-content">
-      <div class="op-divider"><span>— AI ASSISTANT PROMPT —</span></div>
-      <div class="section-box" style="background:var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 16px;">
-        <div style="font-size:13px; color:var(--grey); margin-bottom:16px; line-height:1.4;">Copy this prompt and send it to any AI along with your raw updates. It will give you the perfect JSON to paste in the JSON tab.</div>
-        <button class="submit-btn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="copyAiPrompt(this)">
-          📋 Copy AI Prompt
-        </button>
-      </div>
-    </div>
-
   </div>
 </div>
 
@@ -305,7 +307,34 @@
   <button class="submit-btn" id="mainSubmitBtn" onclick="executeCast()">🚀 CAST</button>
 </div>
 
-<!-- Overlays -->
+<!-- Modals -->
+<div class="modal" id="sniperDeleteModal">
+  <div class="modal-box">
+    <div class="modal-title">🗑️ Delete Homework</div>
+    <div style="font-size:13px; color:var(--grey); margin-bottom:16px;">Are you sure you want to remove this homework for the selected student(s)?</div>
+    <div class="fld"><label>Subject</label><input type="text" id="sdSubj" disabled style="background:var(--off);"></div>
+    <div class="fld"><label>Task</label><input type="text" id="sdOldTask" disabled style="background:var(--off);"></div>
+    <div style="display:flex; gap:12px; margin-top:20px;">
+      <button class="modal-btn secondary" onclick="document.getElementById('sniperDeleteModal').style.display='none'">Cancel</button>
+      <button class="modal-btn danger" onclick="executeSniperDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="settingsModal">
+  <div class="modal-box">
+    <div class="modal-title">🛠️ Settings</div>
+    <div class="op-divider" style="margin-top:16px; margin-bottom:12px;"><span>— AI ASSISTANT PROMPT —</span></div>
+    <div style="font-size:13px; color:var(--grey); margin-bottom:16px; line-height:1.4;">Copy this prompt and send it to any AI along with your raw updates. It will give you the perfect JSON to paste in the JSON tab.</div>
+    <button class="submit-btn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="copyAiPrompt(this)">
+      📋 Copy AI Prompt
+    </button>
+    <div style="display:flex; gap:12px; margin-top:20px;">
+      <button class="modal-btn secondary" onclick="document.getElementById('settingsModal').style.display='none'">Close</button>
+    </div>
+  </div>
+</div>
+
 <div class="status-overlay" id="statusOverlay">
   <div class="status-card" id="statusCard">
     <div class="sc-icon" id="scIcon">⏳</div>
@@ -339,22 +368,6 @@
     <div style="display:flex; gap:10px;">
       <button class="submit-btn" style="flex:1; background:var(--light); color:var(--dark); box-shadow:none; padding:12px; font-size:14px;" onclick="document.getElementById('sniperEditModal').style.display='none'">Cancel</button>
       <button class="submit-btn" style="flex:1; padding:12px; font-size:14px; box-shadow:none; background:var(--blue);" onclick="executeSniperEdit()">Save Update</button>
-    </div>
-  </div>
-</div>
-
-<div class="status-overlay" id="sniperDeleteModal" style="align-items:center;">
-  <div class="status-card" style="text-align:left;">
-    <div class="sc-title" style="font-size:18px; color:#EF4444; display:flex; align-items:center; gap:8px;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-      Delete Assignment?
-    </div>
-    <div style="font-size:14px; color:var(--dark); margin-bottom:20px; margin-top:8px;">Are you sure you want to completely erase <b id="sdTask"></b> from this student's dashboard?</div>
-    <input type="hidden" id="sdSubj">
-    <input type="hidden" id="sdOldTask">
-    <div style="display:flex; gap:10px;">
-      <button class="submit-btn" style="flex:1; background:var(--light); color:var(--dark); box-shadow:none; padding:12px; font-size:14px;" onclick="document.getElementById('sniperDeleteModal').style.display='none'">Cancel</button>
-      <button class="submit-btn" style="flex:1; padding:12px; font-size:14px; box-shadow:none; background:#EF4444;" onclick="executeSniperDelete()">Erase It</button>
     </div>
   </div>
 </div>
@@ -498,6 +511,13 @@
     });
   }
 
+  function toggleAccordion(el) {
+    let acc = el.parentElement.querySelector('.indiv-accordion');
+    if (acc) {
+       acc.style.display = acc.style.display === 'none' ? 'block' : 'none';
+    }
+  }
+
   function copyAiPrompt(btn) {
     const promptText = `Act as a data structurer for my tuition class dashboard. I will give you natural language updates about my students. You must convert these updates into a strict JSON array.
 
@@ -604,7 +624,6 @@ My Update:
     document.getElementById('sniperEditModal').style.display = 'flex';
   }
   function openSniperDelete(subj, task) {
-    document.getElementById('sdTask').innerText = task;
     document.getElementById('sdSubj').value = subj;
     document.getElementById('sdOldTask').value = task;
     document.getElementById('sniperDeleteModal').style.display = 'flex';
@@ -617,7 +636,6 @@ My Update:
     let newTopic = document.getElementById('seNewTask').value.trim();
     if(!newTopic || newTopic === oldTopic) { document.getElementById('sniperEditModal').style.display='none'; return; }
     
-    // Optimistic UI Update
     if (activeSwipe) {
         activeSwipe.querySelector('.item-task').innerText = newTopic;
         let hwSeg = activeSwipe.querySelector('.exc-hw-seg');
@@ -642,7 +660,6 @@ My Update:
     let subj = document.getElementById('sdSubj').value;
     let oldTopic = document.getElementById('sdOldTask').value;
     
-    // Optimistic UI Update
     if (activeSwipe) {
         let swipeWrapper = activeSwipe.closest('.swipe-wrapper');
         if (swipeWrapper) swipeWrapper.remove();
@@ -689,6 +706,24 @@ My Update:
             groupedSyl[subj].forEach(item => {
                 let key = subj + '|||' + item.chap; let defaultStat = isSingle ? item.states[0] : 'MIXED';
                 originalSylState[key] = defaultStat;
+                
+                let summaryHtml = '';
+                if (!isSingle) {
+                    let doneNames = []; let pendingNames = []; let ongoingNames = [];
+                    let sIdArray = Array.from(selectedIds);
+                    for(let i=0; i<sIdArray.length; i++) {
+                       let name = ALL_STUDENTS[sIdArray[i]].name.split(' ')[0];
+                       if (item.states[i] === 'Completed') doneNames.push(name); 
+                       else if (item.states[i] === 'Ongoing') ongoingNames.push(name);
+                       else pendingNames.push(name);
+                    }
+                    summaryHtml = `<div style="font-size:11px; margin-top:6px;">
+                      ${doneNames.length ? `<span style="color:var(--green); font-weight:bold;">Done:</span> <span style="color:var(--grey);">${doneNames.join(', ')}</span> ` : ''}
+                      ${ongoingNames.length ? `<span style="color:var(--blue); font-weight:bold;">Ongoing:</span> <span style="color:var(--grey);">${ongoingNames.join(', ')}</span> ` : ''}
+                      ${pendingNames.length ? `<span style="color:var(--rust); font-weight:bold;">Pending:</span> <span style="color:var(--grey);">${pendingNames.join(', ')}</span>` : ''}
+                    </div>`;
+                }
+
                 let options = isSingle ? `
                     <label><input type="radio" name="syl_${segIdx}" value="Completed" ${defaultStat==='Completed'?'checked':''}><span>Completed</span></label>
                     <label><input type="radio" name="syl_${segIdx}" value="Ongoing" ${defaultStat==='Ongoing'?'checked':''}><span>Ongoing</span></label>
@@ -699,7 +734,39 @@ My Update:
                     <label><input type="radio" name="syl_${segIdx}" value="Ongoing"><span>Ongoing</span></label>
                     <label><input type="radio" name="syl_${segIdx}" value="Pending"><span>Upcoming</span></label>
                 `;
-                sylHtml += `<div class="list-item"><div><div class="item-subj">${subj}</div><div class="item-task">${item.chap}</div></div><div class="seg-ctrl syl exc-syl-seg" data-key="${key}" data-subj="${subj}" data-chap="${item.chap}">${options}</div></div>`;
+                
+                if (isSingle) {
+                  sylHtml += `<div class="list-item"><div><div class="item-subj">${subj}</div><div class="item-task">${item.chap}</div></div><div class="seg-ctrl syl exc-syl-seg" data-key="${key}" data-subj="${subj}" data-chap="${item.chap}">${options}</div></div>`;
+                } else {
+                  let sIdArray = Array.from(selectedIds);
+                  let indivHtml = `
+                  <div class="indiv-accordion" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border);">
+                     <div style="font-size:11px; font-weight:800; letter-spacing:1px; color:var(--purple); margin-bottom:10px;">INDIVIDUAL STATUS OVERRIDE:</div>
+                     ${sIdArray.map((id, i) => {
+                        let cState = item.states[i] || 'Pending';
+                        return `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                           <span style="font-size:13px; font-weight:700; color:var(--dark);">${ALL_STUDENTS[id].name.split(' ')[0]}</span>
+                           <div class="seg-ctrl mini indiv-syl-ctrl" data-sid="${id}" data-orig="${cState}">
+                             <label><input type="radio" name="indiv_syl_${segIdx}_${id}" value="Pending" ${cState==='Pending'?'checked':''}><span>Upc</span></label>
+                             <label><input type="radio" name="indiv_syl_${segIdx}_${id}" value="Ongoing" ${cState==='Ongoing'?'checked':''}><span>Ong</span></label>
+                             <label><input type="radio" name="indiv_syl_${segIdx}_${id}" value="Completed" ${cState==='Completed'?'checked':''}><span>Done</span></label>
+                           </div>
+                        </div>
+                        `
+                     }).join('')}
+                  </div>`;
+                  sylHtml += `<div class="list-item">
+                     <div onclick="toggleAccordion(this)" style="cursor:pointer; transition:opacity 0.2s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">
+                        <div class="item-subj">${subj}</div>
+                        <div class="item-task">${item.chap}</div>
+                        ${summaryHtml}
+                     </div>
+                     <div class="seg-ctrl syl exc-syl-seg" data-key="${key}" data-subj="${subj}" data-chap="${item.chap}" style="margin-top:8px;">${options}</div>
+                     ${indivHtml}
+                  </div>`;
+                }
+                
                 segIdx++;
             });
         }
@@ -734,7 +801,6 @@ My Update:
                 <label><input type="radio" name="hw_${segIdx}" value="Done"><span>Done</span></label>
             `;
             
-            // 🎯 SNIPER MODE: Only enable swipe if a single student is selected
             if (isSingle) {
               hwHtml += `
               <div class="swipe-wrapper">
@@ -752,7 +818,30 @@ My Update:
                   </div>
               </div>`;
             } else {
-              hwHtml += `<div class="list-item"><div><div class="item-subj">${val.subj}</div><div class="item-task">${val.task}</div>${summaryHtml}</div><div class="seg-ctrl hw exc-hw-seg" data-key="${key}" data-subj="${val.subj}" data-task="${val.task}">${options}</div></div>`;
+              let sIdArray = Array.from(selectedIds);
+              let indivHtml = `
+              <div class="indiv-accordion" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border);">
+                 <div style="font-size:11px; font-weight:800; letter-spacing:1px; color:var(--purple); margin-bottom:10px;">INDIVIDUAL STATUS OVERRIDE:</div>
+                 ${sIdArray.map((id, i) => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                       <span style="font-size:13px; font-weight:700; color:var(--dark);">${ALL_STUDENTS[id].name.split(' ')[0]}</span>
+                       <div class="seg-ctrl mini indiv-hw-ctrl" data-sid="${id}" data-orig="${val.states[i]?'Done':'Pending'}">
+                         <label><input type="radio" name="indiv_hw_${segIdx}_${id}" value="Pending" ${!val.states[i]?'checked':''}><span>Pending</span></label>
+                         <label><input type="radio" name="indiv_hw_${segIdx}_${id}" value="Done" ${val.states[i]?'checked':''}><span>Done</span></label>
+                       </div>
+                    </div>
+                 `).join('')}
+              </div>`;
+
+              hwHtml += `<div class="list-item">
+                 <div onclick="toggleAccordion(this)" style="cursor:pointer; transition:opacity 0.2s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">
+                    <div class="item-subj">${val.subj}</div>
+                    <div class="item-task">${val.task}</div>
+                    ${summaryHtml}
+                 </div>
+                 <div class="seg-ctrl hw exc-hw-seg" data-key="${key}" data-subj="${val.subj}" data-task="${val.task}" style="margin-top:8px;">${options}</div>
+                 ${indivHtml}
+              </div>`;
             }
             segIdx++;
         });
@@ -817,8 +906,29 @@ My Update:
           if (newSubj && newTask) sNames.forEach(name => payload.push({ studentName: name, type: "HW_Assigned", subject: newSubj, topic: newTask }));
         });
         document.querySelectorAll('.exc-hw-seg').forEach(seg => {
-            const key = seg.getAttribute('data-key'); const checkedOpt = seg.querySelector('input[type="radio"]:checked'); const val = checkedOpt ? checkedOpt.value : 'MIXED';
-            if (val !== 'MIXED' && val !== originalHWState[key]) sNames.forEach(name => payload.push({ studentName: name, type: "HW_Status", subject: seg.getAttribute('data-subj'), topic: seg.getAttribute('data-task'), status: val }));
+          let val = seg.querySelector('input:checked').value;
+          let key = seg.getAttribute('data-key');
+          let subj = seg.getAttribute('data-subj');
+          let task = seg.getAttribute('data-task');
+          if (val !== 'MIXED') {
+             if (val !== originalHWState[key]) {
+                Array.from(selectedIds).forEach(id => {
+                  payload.push({ type: 'HW_Status', studentName: ALL_STUDENTS[id].name, subject: subj, topic: task, status: val });
+                });
+             }
+          } else {
+             let acc = seg.parentElement.querySelector('.indiv-accordion');
+             if (acc) {
+                acc.querySelectorAll('.indiv-hw-ctrl').forEach(ctrl => {
+                   let indivVal = ctrl.querySelector('input:checked').value;
+                   let origVal = ctrl.getAttribute('data-orig');
+                   if (indivVal !== origVal) {
+                      let sId = ctrl.getAttribute('data-sid');
+                      payload.push({ type: 'HW_Status', studentName: ALL_STUDENTS[sId].name, subject: subj, topic: task, status: indivVal });
+                   }
+                });
+             }
+          }
         });
       }
       else if (currentTab === 'syl') {
@@ -826,8 +936,29 @@ My Update:
         if (newSubj && newChap) sNames.forEach(name => payload.push({ studentName: name, type: "Syllabus", subject: newSubj, topic: newChap, status: newStat }));
         
         document.querySelectorAll('.exc-syl-seg').forEach(seg => {
-            const key = seg.getAttribute('data-key'); const checkedOpt = seg.querySelector('input[type="radio"]:checked'); const val = checkedOpt ? checkedOpt.value : 'MIXED';
-            if (val !== 'MIXED' && val !== originalSylState[key]) sNames.forEach(name => payload.push({ studentName: name, type: "Syllabus", subject: seg.getAttribute('data-subj'), topic: seg.getAttribute('data-chap'), status: val }));
+            let val = seg.querySelector('input:checked').value;
+            let key = seg.getAttribute('data-key');
+            let subj = seg.getAttribute('data-subj');
+            let chap = seg.getAttribute('data-chap');
+            if (val !== 'MIXED') {
+               if (val !== originalSylState[key]) {
+                  Array.from(selectedIds).forEach(id => {
+                    payload.push({ type: 'Syllabus', studentName: ALL_STUDENTS[id].name, subject: subj, topic: chap, status: val });
+                  });
+               }
+            } else {
+               let acc = seg.parentElement.querySelector('.indiv-accordion');
+               if (acc) {
+                  acc.querySelectorAll('.indiv-syl-ctrl').forEach(ctrl => {
+                     let indivVal = ctrl.querySelector('input:checked').value;
+                     let origVal = ctrl.getAttribute('data-orig');
+                     if (indivVal !== origVal) {
+                        let sId = ctrl.getAttribute('data-sid');
+                        payload.push({ type: 'Syllabus', studentName: ALL_STUDENTS[sId].name, subject: subj, topic: chap, status: indivVal });
+                     }
+                  });
+               }
+            }
         });
       }
     }
